@@ -9,7 +9,7 @@ from services import (
     kolosal_client
 )
 from database import supabase
-from models import SupplyItem, MenuRequest, OrderRequest, OrderStatusUpdate
+from models import SupplyItem, MenuRequest, OrderRequest, OrderStatusUpdate, calculate_meal_expiry, CookRequest, MealAnalysisRequest
 from typing import List
 
 app = FastAPI()
@@ -229,37 +229,42 @@ async def update_order_status(order_id: int, update: OrderStatusUpdate):
 @app.post("/api/kitchen/cook")
 async def cook_meal(request: CookRequest):
     """
-    1. Kurangi stok bahan mentah (Logic Deduct).
-    2. Catat produksi makanan jadi.
-    3. Hitung expired date (Misal: 6 jam dari sekarang).
+    Kurangi stok & Catat Produksi dengan Analisis Safety Lengkap
     """
     try:
-        # 1. Deduct Stock (Looping ID bahan yang dipakai)
-        # Simplifikasi Hackathon: Kita tandai stok sbg "Used" atau kurangi qty
-        # Di sini kita anggap user memilih bahan yg dihabiskan
+        # 1. Deduct Stock (Anggap berhasil)
         for item_id in request.ingredients_ids:
-            # Query update quantity = 0 (Anggap habis dipakai masak)
-            # Atau kurangi spesifik (Butuh logic lebih rumit, skip dulu buat MVP)
             supabase.table("supplies").delete().eq("id", item_id).execute()
         
-        # 2. Tanya AI: Menu ini tahan berapa lama?
-        # (Kita hardcode simple logic atau panggil services.calculate_meal_expiry)
-        hours_valid = 6 # Default 6 jam buat makanan basah
+        # 2. Tanya AI (Panggil fungsi yang baru kita update)
+        # Note: Pastikan import calculate_meal_expiry sudah ada di atas
+        safety_analysis = calculate_meal_expiry(request.menu_name)
+        
+        # Ambil data dari hasil AI
+        hours_room = safety_analysis.get("room_temp_hours", 4)
+        hours_fridge = safety_analysis.get("fridge_hours", 12)
+        tips_raw = safety_analysis.get("storage_tips", "Simpan dengan baik.")
+        
+        # Format Tips biar informatif di Database/Frontend
+        # Contoh: "Jangan tutup panas. (Tahan 4 jam suhu ruang, 12 jam di kulkas)"
+        formatted_tips = f"{tips_raw} (Tahan {hours_fridge} jam jika masuk kulkas)"
         
         # 3. Simpan ke meal_productions
         data = {
             "menu_name": request.menu_name,
             "qty_produced": request.qty_produced,
-            "expiry_datetime": (datetime.now() + timedelta(hours=hours_valid)).isoformat(),
+            # Kita set expiry date berdasarkan SUHU RUANG (Skenario Terburuk/Aman)
+            "expiry_datetime": (datetime.now() + timedelta(hours=hours_room)).isoformat(),
             "status": "fresh",
-            "storage_tips": "Jangan tutup rapat saat panas. Simpan suhu ruang max 4 jam."
+            "storage_tips": formatted_tips # Simpan tips lengkap di sini
         }
+        
         res = supabase.table("meal_productions").insert(data).execute()
         return {"status": "success", "data": res.data}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # --- FITUR 11: MEAL SCANNER (VISION QC) ---
 @app.post("/api/kitchen/scan-meal")
 async def scan_meal(file: UploadFile = File(...)):
@@ -267,3 +272,4 @@ async def scan_meal(file: UploadFile = File(...)):
     # Panggil fungsi baru di services.py
     result = analyze_cooked_meal(image_bytes)
     return result
+
