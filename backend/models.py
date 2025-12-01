@@ -15,6 +15,10 @@ class SupplyItem(BaseModel):
     owner_name: str = "Pedagang Pasar"  
     location: str = "Pasar Tradisional" 
     
+    # Field Lokasi (GPS)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    
     # Field Tambahan (Update Produksi)
     photo_url: Optional[str] = None     # Link Foto Bukti
     expiry_date: Optional[str] = None   # Tanggal Pasti (YYYY-MM-DD)
@@ -40,3 +44,9 @@ class CookRequest(BaseModel):
 class MealAnalysisRequest(BaseModel):
     # Buat foto makanan jadi (Vision)
     pass # Kita pake UploadFile langsung di main.py
+
+# --- 4. MODEL IOT (SMART STORAGE) ---
+class IoTLogRequest(BaseModel):
+    temperature: float
+    humidity: float
+    device_id: str = "SENSOR-01"

@@ -15,6 +15,11 @@ st.info("Foto barang dagangan Anda untuk didata otomatis oleh AI.")
 with st.expander("👤 Identitas Pedagang", expanded=True):
     owner_name = st.text_input("Nama Pedagang", value="Pak Asep")
     location = st.text_input("Lokasi Pasar", value="Pasar Induk Cianjur")
+    
+    # Input GPS Manual (Simulasi)
+    c_lat, c_long = st.columns(2)
+    latitude = c_lat.number_input("Latitude (GPS)", value=-6.175392, format="%.6f")
+    longitude = c_long.number_input("Longitude (GPS)", value=106.827153, format="%.6f")
 
 # 2. Ambil Foto (Pilih Metode)
 st.write("---")
@@ -134,7 +139,9 @@ if items_data and photo_url:
                 "note": item.get('note'),
                 "photo_url": photo_url,
                 "owner_name": owner_name,
-                "location": location
+                "location": location,
+                "latitude": latitude,
+                "longitude": longitude
             })
 
     # --- STEP D: SIMPAN KE DATABASE ---

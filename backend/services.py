@@ -157,25 +157,67 @@ def generate_menu_recommendation(ingredients_list):
         print(f"❌ Error Menu AI: {e}")
         return {"error": "Gagal membuat menu"}
 
-def search_suppliers(keyword: str):
+        return {"error": "Gagal mencari data"}
+
+import math
+
+def haversine_distance(lat1, lon1, lat2, lon2):
     """
-    Cari supplier berdasarkan nama barang.
-    Menggunakan filter 'ilike' (mirip SQL LIKE %keyword%).
+    Hitung jarak antara dua titik koordinat (km)
     """
-    print(f"🔍 Mencari supplier untuk: {keyword}")
+    R = 6371  # Radius bumi dalam km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) * math.sin(dlat / 2) + math.cos(math.radians(lat1)) \
+        * math.cos(math.radians(lat2)) * math.sin(dlon / 2) * math.sin(dlon / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+def search_suppliers(keyword: str, user_lat: float = -6.175392, user_long: float = 106.827153):
+    """
+    Cari supplier dan urutkan berdasarkan JARAK TERDEKAT.
+    Default User Location: Monas (Jakarta Pusat).
+    """
+    print(f"🔍 Mencari supplier '{keyword}' dekat {user_lat}, {user_long}")
     
     try:
-        # Cari di kolom 'item_name' yang mengandung keyword
-        # Order by 'expiry_days' ascending (Prioritaskan barang yg harus segera laku/expired duluan biar ga mubazir)
-        # Atau order by 'quantity' desc (Cari yg stoknya banyak)
-        
+        # 1. Ambil data dari DB (Filter nama dulu)
         response = supabase.table("supplies")\
             .select("*")\
             .ilike("item_name", f"%{keyword}%")\
-            .order("expiry_days", desc=False)\
             .execute()
             
-        return response.data
+        items = response.data
+        
+        # 2. Inject Dummy Location & Hitung Jarak
+        # (Karena data DB belum ada lat/long beneran, kita simulasi di sini biar demo lancar)
+        import random
+        
+        results_with_distance = []
+        for item in items:
+            # 1. Coba ambil Real GPS dari Database
+            item_lat = item.get('latitude')
+            item_long = item.get('longitude')
+            
+            # 2. Fallback ke Simulasi jika data GPS kosong (None)
+            if item_lat is None or item_long is None:
+                # Simulasi koordinat random sekitar Jakarta (± 0.05 derajat)
+                item_lat = -6.175392 + random.uniform(-0.05, 0.05)
+                item_long = 106.827153 + random.uniform(-0.05, 0.05)
+            
+            dist = haversine_distance(user_lat, user_long, item_lat, item_long)
+            
+            # Tambahkan info jarak ke item
+            item['distance_km'] = round(dist, 1)
+            item['location_lat'] = item_lat
+            item['location_long'] = item_long
+            
+            results_with_distance.append(item)
+            
+        # 3. Urutkan berdasarkan jarak terdekat (Ascending)
+        results_with_distance.sort(key=lambda x: x['distance_km'])
+        
+        return results_with_distance
         
     except Exception as e:
         print(f"❌ Error DB Search: {e}")
@@ -278,11 +320,50 @@ def analyze_cooked_meal(image_bytes):
     except Exception as e:
         return {"error": str(e)}
 
-def calculate_meal_expiry(menu_name):
+def calculate_meal_expiry(menu_name: str) -> dict:
     """
-    Logic text-based: Minta Claude nentuin umur simpan makanan matang
+    Tanya Claude: Analisis umur simpan & Tips penyimpanan.
+    Output: Dictionary lengkap (bukan cuma int).
     """
-    # ... (Bisa dibuat simpel dengan prompt text ke Claude) ...
-    # Return: jumlah jam tahan lama (misal: Santan = 4 jam, Gorengan = 12 jam)
-    return 6 # Default dummy 6 jam
+    print(f"🕒 Analisis Safety Food untuk: {menu_name}")
+    
+    prompt = f"""
+    Kamu adalah Ahli Keamanan Pangan & Higiene Sanitasi.
+    
+    Tugas: Analisis keamanan pangan untuk menu masakan matang: "{menu_name}".
+    Berikan estimasi umur simpan (Shelf Life) dalam DUA kondisi dan tips agar awet.
+    
+    Output HANYA JSON raw (tanpa markdown):
+    {{
+        "room_temp_hours": (integer, estimasi tahan berapa jam di suhu ruang/kelas),
+        "fridge_hours": (integer, estimasi tahan berapa jam jika masuk kulkas/chiller),
+        "risk_factor": "Rendah/Sedang/Tinggi (Misal: Tinggi karena bersantan)",
+        "storage_tips": "Saran singkat, padat, teknis (Misal: 'Jangan tutup wadah saat panas', 'Pisahkan kuah dan isi')"
+    }}
+    """
+    
+    try:
+        response = kolosal_client.chat.completions.create(
+            model="Claude Sonnet 4.5",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300,
+            temperature=0.2
+        )
+        
+        content = response.choices[0].message.content
+        cleaned_content = content.replace("```json", "").replace("```", "").strip()
+        data = json.loads(cleaned_content)
+        
+        print(f"✅ Analisis Selesai: {data.get('risk_factor')}")
+        return data
+
+    except Exception as e:
+        print(f"⚠️ Gagal hitung expiry: {e}")
+        # Default fallback yang aman
+        return {
+            "room_temp_hours": 4,
+            "fridge_hours": 12,
+            "risk_factor": "Unknown",
+            "storage_tips": "Segera konsumsi. Simpan di tempat sejuk dan tertutup."
+        }
 

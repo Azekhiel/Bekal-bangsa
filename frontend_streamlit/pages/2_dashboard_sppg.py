@@ -4,6 +4,12 @@ import pandas as pd
 import plotly.express as px
 
 API_URL = "http://127.0.0.1:8000/api"
+import streamlit as st
+import requests
+import pandas as pd
+import plotly.express as px
+
+API_URL = "http://127.0.0.1:8000/api"
 
 st.set_page_config(page_title="Dashboard SPPG - Bekal Bangsa", page_icon="📊", layout="wide")
 
@@ -11,7 +17,7 @@ st.title("📊 Command Center SPPG")
 st.markdown("Pantau ketersediaan pangan lokal & Rencanakan menu bergizi.")
 
 # --- TABS FITUR ---
-tab1, tab2, tab3 = st.tabs(["📦 Monitoring Stok", "🔍 Cari Supplier (Matching)", "🍽️ Rekomendasi Menu"])
+tab1, tab2, tab3, tab4 = st.tabs(["📦 Monitoring Stok", "🔍 Cari Supplier (Matching)", "🍽️ Rekomendasi Menu", "🌡️ Smart Storage (IoT)"])
 
 # ==========================================
 # TAB 1: MONITORING STOK (GET /api/supplies)
@@ -72,45 +78,6 @@ with tab2:
     
     keyword = st.text_input("Butuh bahan apa?", placeholder="Contoh: Bawang, Telur, Bayam")
     
-    if keyword:
-        with st.spinner(f"Mencari pedagang yang punya {keyword}..."):
-            try:
-                resp = requests.get(f"{API_URL}/suppliers/search", params={"q": keyword})
-                results = resp.json().get("data", [])
-                
-                if results:
-                    st.success(f"Ditemukan {len(results)} supplier!")
-                    
-                    for item in results:
-                        with st.container(border=True):
-                            c1, c2, c3 = st.columns([2, 2, 1])
-                            c1.markdown(f"### {item['item_name']}")
-                            c1.caption(f"📍 {item['location']} ({item['owner_name']})")
-                            
-                            c2.metric("Stok Tersedia", f"{item['quantity']} {item['unit']}")
-                            c2.text(f"Kualitas: {item['quality_status']}")
-                            
-                            # Ganti tombol Chat jadi Order
-                            if c3.button("🛒 Pesan", key=f"order_{item['id']}"):
-                                with st.spinner("Membuat pesanan..."):
-                                    payload = {
-                                        "supply_id": item['id'],
-                                        "qty_ordered": item['quantity'], # Pesan semua stok (biar gampang)
-                                        "buyer_name": "Dapur SPPG 01"
-                                    }
-                                    res = requests.post(f"{API_URL}/orders", json=payload)
-                                    if res.status_code == 200:
-                                        st.success("✅ Pesanan Terkirim!")
-                                        st.balloons()
-                                    else:
-                                        st.error("Gagal pesan")
-                else:
-                    st.warning("Tidak ditemukan supplier untuk barang tersebut.")
-            except Exception as e:
-                st.error("Error connecting to matching engine.")
-
-# ==========================================
-# TAB 3: SMART MENU (POST /api/recommend-menu)
 # ==========================================
 with tab3:
     st.subheader("🍽️ Asisten Gizi AI")
@@ -147,3 +114,52 @@ with tab3:
                     
                 except Exception as e:
                     st.error(f"Gagal generate menu: {e}")
+
+# ==========================================
+# TAB 4: SMART STORAGE (IoT Monitoring)
+# ==========================================
+with tab4:
+    st.subheader("🌡️ Smart Storage Monitoring")
+    st.info("Data real-time dari sensor IoT di gudang penyimpanan.")
+    
+    if st.button("🔄 Refresh Sensor"):
+        st.rerun()
+        
+    try:
+        # Ambil data logs dari API
+        resp = requests.get(f"{API_URL}/iot/logs")
+        logs = resp.json()
+        
+        if logs:
+            df_iot = pd.DataFrame(logs)
+            
+            # Ambil data terbaru (row pertama karena desc sort)
+            latest = df_iot.iloc[0]
+            
+            # 1. Metrics Utama
+            c1, c2, c3 = st.columns(3)
+            
+            # Logic Warna Suhu (Ideal 20-25)
+            temp_val = latest['temperature']
+            temp_delta = "Normal"
+            if temp_val > 25: temp_delta = "Panas!"
+            elif temp_val < 20: temp_delta = "Dingin!"
+            
+            c1.metric("Suhu Gudang", f"{temp_val} °C", delta=temp_delta, delta_color="inverse")
+            c2.metric("Kelembaban", f"{latest['humidity']} %")
+            c3.metric("Status Sensor", "ONLINE", delta="Active")
+            
+            # 2. Grafik Line Chart (History)
+            st.caption("Grafik Suhu & Kelembaban (50 Data Terakhir)")
+            
+            # Melt dataframe biar bisa 2 garis dalam 1 chart
+            df_chart = df_iot[['created_at', 'temperature', 'humidity']].melt('created_at', var_name='Metric', value_name='Value')
+            
+            fig = px.line(df_chart, x='created_at', y='Value', color='Metric', markers=True)
+            st.plotly_chart(fig, use_container_width=True)
+            
+        else:
+            st.warning("Belum ada data sensor. Jalankan 'iot_simulator.py' di backend.")
+            
+    except Exception as e:
+        st.error(f"Gagal koneksi ke IoT Server: {e}")

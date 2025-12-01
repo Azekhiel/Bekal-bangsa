@@ -91,7 +91,9 @@ async def create_supplies(items: List[SupplyItem]):
                 "photo_url": item.photo_url,      # Field baru di DB
                 "ai_notes": item.note,
                 "owner_name": item.owner_name,
-                "location": item.location
+                "location": item.location,
+                "latitude": item.latitude,   # Simpan GPS Real
+                "longitude": item.longitude  # Simpan GPS Real
             })
         
         # Supabase support insert BANYAK sekaligus (Bulk Insert)
@@ -136,11 +138,11 @@ async def recommend_menu(request: MenuRequest):
 
 # -- FITUR 5: CARI SUPPLIER (DB Search) ---
 @app.get("/api/suppliers/search")
-async def find_suppliers(q: str):
+async def find_suppliers(q: str, lat: float = -6.175392, long: float = 106.827153):
     """
-    Contoh: /api/suppliers/search?q=Bawang
+    Contoh: /api/suppliers/search?q=Bawang&lat=-6.2&long=106.8
     """
-    results = search_suppliers(q)
+    results = search_suppliers(q, lat, long)
     
     if isinstance(results, dict) and "error" in results:
         raise HTTPException(status_code=500, detail=results["error"])
@@ -281,4 +283,41 @@ async def scan_meal(file: UploadFile = File(...)):
     # Panggil fungsi baru di services.py
     result = analyze_cooked_meal(image_bytes)
     return result
+
+# --- FITUR 12: IOT SMART STORAGE ---
+@app.post("/api/iot/log")
+async def log_iot_data(data: IoTLogRequest):
+    """
+    Menerima data sensor dari IoT Simulator
+    """
+    try:
+        payload = {
+            "temperature": data.temperature,
+            "humidity": data.humidity,
+            "device_id": data.device_id
+        }
+        # Simpan ke tabel 'storage_logs'
+        # Note: Pastikan tabel ini sudah dibuat di Supabase!
+        response = supabase.table("storage_logs").insert(payload).execute()
+        return {"status": "success", "data": response.data}
+    except Exception as e:
+        print(f"❌ Error IoT Log: {e}")
+        # Return success biar simulator gak crash, tapi log error di server
+        return {"status": "error", "detail": str(e)}
+
+@app.get("/api/iot/logs")
+async def get_iot_logs():
+    """
+    Ambil data history suhu & kelembaban untuk grafik Dashboard
+    """
+    try:
+        # Ambil 50 data terakhir
+        response = supabase.table("storage_logs")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(50)\
+            .execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
