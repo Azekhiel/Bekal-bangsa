@@ -5,6 +5,9 @@ import base64
 from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
+from datetime import datetime, timedelta
+from fastapi import UploadFile
+import time
 
 # Explicitly load .env from the same directory
 load_dotenv(Path(__file__).parent / ".env")
@@ -13,7 +16,6 @@ load_dotenv(Path(__file__).parent / ".env")
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 # --- SETUP CLIENTS ---
-# HANYA butuh Colossal/Claude. Roboflow sudah dipensiunkan.
 kolosal_client = OpenAI(
     api_key=os.getenv("KOLOSAL_API_KEY"),
     base_url=os.getenv("KOLOSAL_BASE_URL")
@@ -25,8 +27,7 @@ def encode_image_to_base64(image_bytes):
 
 def analyze_market_inventory(image_bytes):
     """
-    PURE CLAUDE INTELLIGENCE
-    Satu otak untuk semua: Deteksi Jenis, Hitung Jumlah, Cek Kualitas.
+    Claude untuk Deteksi Jenis, Hitung Jumlah, Cek Kualitas.
     """
     
     print("✨ Mengirim gambar ke Claude Sonnet 4.5 (All-in-One Analysis)...")
@@ -178,3 +179,44 @@ def search_suppliers(keyword: str):
     except Exception as e:
         print(f"❌ Error DB Search: {e}")
         return {"error": "Gagal mencari data"}
+
+def calculate_expiry_date(days: int) -> str:
+    """
+    Menghitung tanggal kadaluarsa berdasarkan jumlah hari dari sekarang.
+    Output: YYYY-MM-DD
+    """
+    expiry_date = datetime.now() + timedelta(days=days)
+    return expiry_date.strftime("%Y-%m-%d")
+
+async def upload_image_to_supabase(file: UploadFile) -> str:
+    """
+    Upload file gambar ke Supabase Storage dan kembalikan URL publiknya.
+    """
+    try:
+        # 1. Baca file bytes
+        file_bytes = await file.read()
+        
+        # 2. Generate nama file unik (timestamp_filename)
+        timestamp = int(time.time())
+        filename = f"{timestamp}_{file.filename}"
+        
+        # 3. Upload ke Supabase Storage (Bucket: 'supply-photos')
+        # Pastikan bucket 'supply-photos' sudah dibuat di Supabase Dashboard!
+        bucket_name = "supply-photos"
+        
+        response = supabase.storage.from_(bucket_name).upload(
+            path=filename,
+            file=file_bytes,
+            file_options={"content-type": file.content_type}
+        )
+        
+        # 4. Ambil Public URL
+        public_url = supabase.storage.from_(bucket_name).get_public_url(filename)
+        
+        return public_url
+        
+    except Exception as e:
+        print(f"❌ Error Upload Supabase: {e}")
+        # Jangan raise error biar flow gak putus, tapi return None atau string kosong
+        # Nanti di main.py bisa dicek
+        return None

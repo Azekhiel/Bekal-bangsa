@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 # --- MODEL DATA BARANG (SUPPLY) ---
+from pydantic import BaseModel
+from typing import Optional, List
+
+# --- MODEL DATA BARANG (SUPPLY) ---
 class SupplyItem(BaseModel):
     # Field ini WAJIB ada (dikirim dari Frontend hasil AI)
     name: str           # Contoh: "Bawang Merah"
@@ -14,6 +18,8 @@ class SupplyItem(BaseModel):
     note: Optional[str] = None      # Alasan AI (Reasoning)
     owner_name: str = "Pedagang Pasar"  # Nanti bisa diganti nama user login
     location: str = "Pasar Tradisional" # Nanti bisa ambil dari GPS
+    photo_url: Optional[str] = None     # URL foto bukti barang
+    expiry_date: Optional[str] = None   # Tanggal kadaluarsa (YYYY-MM-DD)
 
 # --- MODEL REQUEST MENU (DEMAND) ---
 class MenuRequest(BaseModel):

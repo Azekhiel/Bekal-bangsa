@@ -1,6 +1,13 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from services import analyze_market_inventory, generate_menu_recommendation, search_suppliers, kolosal_client
+from services import (
+    analyze_market_inventory, 
+    generate_menu_recommendation, 
+    search_suppliers, 
+    calculate_expiry_date, 
+    upload_image_to_supabase,
+    kolosal_client
+)
 from database import supabase
 from models import SupplyItem, MenuRequest
 from typing import List
@@ -27,9 +34,28 @@ async def analyze_image(file: UploadFile = File(...)):
     2. Kirim ke Claude Sonnet
     3. Balikin JSON (Belum disimpan ke DB, cuma preview)
     """
-    image_bytes = await file.read()
-    result = analyze_market_inventory(image_bytes)
-    return result
+    try:
+        image_bytes = await file.read()
+        result = analyze_market_inventory(image_bytes)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- FITUR BARU: UPLOAD FOTO ---
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """
+    Upload foto barang ke Supabase Storage.
+    Return: {"url": "https://..."}
+    """
+    try:
+        url = await upload_image_to_supabase(file)
+        if not url:
+            raise HTTPException(status_code=500, detail="Gagal upload ke Supabase")
+            
+        return {"url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- FITUR 2: SIMPAN STOK (BULK INSERT) ---
 # Update: Menerima List[SupplyItem] biar bisa simpan 5 bawang & 8 telur sekaligus
@@ -47,12 +73,19 @@ async def create_supplies(items: List[SupplyItem]):
         
         # Loop semua barang yang dikirim frontend
         for item in items:
+            # Hitung tanggal kadaluarsa otomatis jika belum ada
+            final_expiry_date = item.expiry_date
+            if not final_expiry_date and item.expiry_days:
+                final_expiry_date = calculate_expiry_date(item.expiry_days)
+            
             data_to_insert.append({
                 "item_name": item.name,
                 "quantity": item.qty,
                 "unit": item.unit,
                 "quality_status": item.freshness,
                 "expiry_days": item.expiry_days,
+                "expiry_date": final_expiry_date, # Field baru di DB
+                "photo_url": item.photo_url,      # Field baru di DB
                 "ai_notes": item.note,
                 "owner_name": item.owner_name,
                 "location": item.location
