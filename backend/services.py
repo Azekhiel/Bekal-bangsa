@@ -1,3 +1,4 @@
+from database import supabase
 import os
 import json
 import base64
@@ -113,3 +114,67 @@ def analyze_market_inventory(image_bytes):
     except Exception as e:
         print(f"❌ Error API: {e}")
         return {"error": f"Gagal analisis: {str(e)}"}
+
+def generate_menu_recommendation(ingredients_list):
+    """
+    Fungsi untuk minta ide menu ke Claude berdasarkan stok
+    """
+    print(f"👨‍🍳 Mengirim request menu ke Claude untuk: {ingredients_list}")
+    
+    ingredients_text = ", ".join(ingredients_list)
+    
+    # Prompt Menu
+    prompt = f"""
+    Saya punya stok bahan berikut di gudang: {ingredients_text}.
+    
+    Buatkan 1 Rekomendasi Menu Makan Siang Bergizi Gratis (MBG) untuk anak sekolah.
+    Syarat: Murah, Bergizi, Praktis, Lokal.
+    
+    Output JSON:
+    {{
+        "menu_name": "Nama Masakan",
+        "description": "Deskripsi singkat menggugah selera",
+        "nutrition": "Estimasi Kalori & Protein",
+        "reason": "Kenapa menu ini cocok dengan bahan yg ada",
+        "ingredients_used": ["Bahan A", "Bahan B"]
+    }}
+    """
+    
+    try:
+        response = kolosal_client.chat.completions.create(
+            model="Claude Sonnet 4.5",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=600
+        )
+        
+        content = response.choices[0].message.content
+        cleaned_content = content.replace("```json", "").replace("```", "").strip()
+        return json.loads(cleaned_content)
+        
+    except Exception as e:
+        print(f"❌ Error Menu AI: {e}")
+        return {"error": "Gagal membuat menu"}
+
+def search_suppliers(keyword: str):
+    """
+    Cari supplier berdasarkan nama barang.
+    Menggunakan filter 'ilike' (mirip SQL LIKE %keyword%).
+    """
+    print(f"🔍 Mencari supplier untuk: {keyword}")
+    
+    try:
+        # Cari di kolom 'item_name' yang mengandung keyword
+        # Order by 'expiry_days' ascending (Prioritaskan barang yg harus segera laku/expired duluan biar ga mubazir)
+        # Atau order by 'quantity' desc (Cari yg stoknya banyak)
+        
+        response = supabase.table("supplies")\
+            .select("*")\
+            .ilike("item_name", f"%{keyword}%")\
+            .order("expiry_days", desc=False)\
+            .execute()
+            
+        return response.data
+        
+    except Exception as e:
+        print(f"❌ Error DB Search: {e}")
+        return {"error": "Gagal mencari data"}
