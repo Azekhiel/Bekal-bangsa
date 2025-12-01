@@ -129,12 +129,13 @@ def generate_menu_recommendation(ingredients_list):
     Saya punya stok bahan berikut di gudang: {ingredients_text}.
     
     Buatkan 1 Rekomendasi Menu Makan Siang Bergizi Gratis (MBG) untuk anak sekolah.
+    Sertakan juga step by step langkah memasaknya
     Syarat: Murah, Bergizi, Praktis, Lokal.
     
     Output JSON:
     {{
         "menu_name": "Nama Masakan",
-        "description": "Deskripsi singkat menggugah selera",
+        "description": "Deskripsi singkat menggugah selera dan langkah memasaknya",
         "nutrition": "Estimasi Kalori & Protein",
         "reason": "Kenapa menu ini cocok dengan bahan yg ada",
         "ingredients_used": ["Bahan A", "Bahan B"]

@@ -68,12 +68,20 @@ if img_file:
             # --- 🔥 FIX PENTING: UPDATE MEMORI STREAMLIT 🔥 ---
             # Kita paksa update session_state dengan data baru dari API
             # agar widget form di bawah mau berubah nilainya.
+            # --- 🔥 FIX PENTING: UPDATE MEMORI STREAMLIT 🔥 ---
             for i, item in enumerate(items_data):
                 st.session_state[f"name_{i}"] = item['name']
-                st.session_state[f"qty_{i}"] = int(item['qty'])
+                
+                # FIX: Pastikan qty minimal 1 biar gak crash
+                raw_qty = int(item['qty'])
+                st.session_state[f"qty_{i}"] = raw_qty if raw_qty > 0 else 1
+                
                 st.session_state[f"unit_{i}"] = item['unit']
                 st.session_state[f"fresh_{i}"] = item['freshness']
-                st.session_state[f"exp_{i}"] = int(item['expiry'])
+                
+                # FIX: Pastikan expiry minimal 0 (jangan minus)
+                raw_exp = int(item['expiry'])
+                st.session_state[f"exp_{i}"] = raw_exp if raw_exp >= 0 else 0
 
             st.success("✅ Analisis Selesai!")
             

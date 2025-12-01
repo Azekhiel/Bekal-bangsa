@@ -9,7 +9,7 @@ from services import (
     kolosal_client
 )
 from database import supabase
-from models import SupplyItem, MenuRequest
+from models import SupplyItem, MenuRequest, OrderRequest, OrderStatusUpdate
 from typing import List
 
 app = FastAPI()
@@ -26,7 +26,7 @@ app.add_middleware(
 def read_root():
     return {"status": "Backend Bekal Bangsa Ready 🚀"}
 
-# --- FITUR 1: ANALISIS GAMBAR (AI Vision) ---
+# --- FITUR 1: ANALISIS GAMBAR & UPLOAD FOTO (AI Vision) ---
 @app.post("/api/analyze")
 async def analyze_image(file: UploadFile = File(...)):
     """
@@ -41,7 +41,6 @@ async def analyze_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- FITUR BARU: UPLOAD FOTO ---
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     """
@@ -142,3 +141,86 @@ async def find_suppliers(q: str):
         "count": len(results),
         "data": results
     }
+
+    # --- Update di paling atas (Import) ---
+from pydantic import BaseModel
+
+# --- Tambah Model Baru ---
+class OrderRequest(BaseModel):
+    supply_id: int
+    qty_ordered: int
+    buyer_name: str = "SPPG Jakarta Pusat"
+
+class OrderStatusUpdate(BaseModel):
+    status: str # 'confirmed' atau 'completed'
+
+# -- FITUR 6: SPPG Bikin Pesanan ---
+@app.post("/api/orders")
+async def create_order(order: OrderRequest):
+    try:
+        # Simpan ke tabel orders
+        data = {
+            "supply_id": order.supply_id,
+            "qty_ordered": order.qty_ordered,
+            "buyer_name": order.buyer_name,
+            "status": "pending"
+        }
+        response = supabase.table("orders").insert(data).execute()
+        return {"status": "success", "data": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -- FITUR 7: UMKM Lihat Pesanan Masuk (Ambil detail barangnya juga) ---
+@app.get("/api/orders/umkm")
+async def get_incoming_orders():
+    try:
+        # Join tabel orders dengan supplies biar tau nama barangnya apa
+        # Syntax Supabase: select(*, supplies(*))
+        response = supabase.table("orders").select("*, supplies(*)").order("created_at", desc=True).execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -- FITUR 8: UMKM Update Status (Terima Pesanan) ---
+@app.put("/api/orders/{order_id}")
+async def update_order_status(order_id: int, update: OrderStatusUpdate):
+    try:
+        response = supabase.table("orders").update({"status": update.status}).eq("id", order_id).execute()
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -- FITUR 9: TRANSAKSI (ORDER MANAGEMENT) ---
+@app.post("/api/orders")
+async def create_order(order: OrderRequest):
+    """SPPG Membuat Pesanan Baru"""
+    try:
+        data = {
+            "supply_id": order.supply_id,
+            "qty_ordered": order.qty_ordered,
+            "buyer_name": order.buyer_name,
+            "status": "pending"
+        }
+        response = supabase.table("orders").insert(data).execute()
+        return {"status": "success", "data": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/orders/umkm")
+async def get_incoming_orders():
+    """UMKM Melihat Pesanan Masuk (Join dengan tabel supplies)"""
+    try:
+        # Syntax Supabase: select("*, supplies(*)") artinya join tabel supplies
+        response = supabase.table("orders").select("*, supplies(*)").order("created_at", desc=True).execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/orders/{order_id}")
+async def update_order_status(order_id: int, update: OrderStatusUpdate):
+    """Update Status Pesanan (Terima/Kirim)"""
+    try:
+        response = supabase.table("orders").update({"status": update.status}).eq("id", order_id).execute()
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

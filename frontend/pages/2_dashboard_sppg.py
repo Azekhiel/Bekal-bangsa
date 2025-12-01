@@ -90,9 +90,20 @@ with tab2:
                             c2.metric("Stok Tersedia", f"{item['quantity']} {item['unit']}")
                             c2.text(f"Kualitas: {item['quality_status']}")
                             
-                            # Tombol Aksi (Simulasi Chat WA)
-                            if c3.button("💬 Hubungi", key=f"chat_{item['id']}"):
-                                st.toast(f"Membuka WhatsApp Pak {item['owner_name']}...")
+                            # Ganti tombol Chat jadi Order
+                            if c3.button("🛒 Pesan", key=f"order_{item['id']}"):
+                                with st.spinner("Membuat pesanan..."):
+                                    payload = {
+                                        "supply_id": item['id'],
+                                        "qty_ordered": item['quantity'], # Pesan semua stok (biar gampang)
+                                        "buyer_name": "Dapur SPPG 01"
+                                    }
+                                    res = requests.post(f"{API_URL}/orders", json=payload)
+                                    if res.status_code == 200:
+                                        st.success("✅ Pesanan Terkirim!")
+                                        st.balloons()
+                                    else:
+                                        st.error("Gagal pesan")
                 else:
                     st.warning("Tidak ditemukan supplier untuk barang tersebut.")
             except Exception as e:
