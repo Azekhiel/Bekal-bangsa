@@ -1,7 +1,7 @@
 # Bekal Bangsa - Project Documentation
 
 ## 1. Project Context & Objectives
-**Bekal Bangsa** is a digital ecosystem designed to support the **"Makan Siang Bergizi Gratis" (Free Nutritious Lunch)** program by connecting traditional market vendors (UMKM) directly with central kitchens (SPPG).
+**Bekal Bangsa** is a digital ecosystem designed to fix the **"Makan Siang Bergizi Gratis" (Free Nutritious Lunch)** program by connecting traditional market vendors (UMKM) directly with central kitchens (SPPG).
 
 *   **Main Problem Solved:** Streamlining the supply chain from local markets to school kitchens, ensuring ingredient freshness, minimizing waste, and automating nutritional planning.
 *   **Target Users:**
@@ -56,51 +56,51 @@
     streamlit run frontend_streamlit/Home.py
     ```
 
-3.  **Start IoT Simulator (Optional):**
-    ```bash
-    python backend/iot_simulator.py
-    ```
+3.  **IoT Simulator:**
+    *   The simulator (`backend/iot_simulator.py`) is designed to **auto-start** when you run `Home.py`.
+    *   If you need to run it manually: `python backend/iot_simulator.py`
 
 ## 3. Folder Structure & File Responsibilities
 
 ```text
 .
 ├── backend/
-│   ├── main.py           # API Gateway: Defines all HTTP endpoints (Upload, Analyze, Order, Cook, IoT).
-│   ├── services.py       # Business Logic & AI: Handles Claude (Kolosal), Supabase, and Geospatial logic.
-│   ├── models.py         # Data Validation: Pydantic models (SupplyItem, IoTLogRequest).
-│   ├── iot_simulator.py  # Simulation: Generates dummy sensor data for the Smart Storage feature.
-│   ├── export_openapi.py # Tool: Exports OpenAPI JSON for frontend type generation.
-│   └── database.py       # Database Connection: Initializes the Supabase client.
+│   ├── main.py           # API Gateway: Central controller routing all HTTP requests (Upload, Analyze, Orders, IoT).
+│   ├── services.py       # The "Brain": Handles AI logic (Claude), Database interactions, and Geospatial calculations.
+│   ├── models.py         # Data Validation: Pydantic models ensuring data integrity (e.g., SupplyItem, IoTLogRequest).
+│   ├── iot_simulator.py  # IoT Simulation: Generates dummy sensor data (Temp/Humidity) for the Smart Storage feature.
+│   ├── database.py       # Database Connection: Initializes the Supabase client.
+│   └── *.sql             # SQL Scripts: Database schema definitions and fixes (e.g., RLS, GPS columns).
 └── frontend_streamlit/
-    ├── Home.py           # Landing Page: Role selection (Pedagang vs SPPG).
+    ├── Home.py           # Entry Point: Landing page for role selection (Pedagang vs SPPG) and IoT Simulator auto-start.
     └── pages/
         ├── 1_upload.py         # Vendor: AI Inventory scanning with Real GPS input.
-        ├── 2_dashboard_sppg.py # Admin: Stock monitoring, Geospatial Supplier search, IoT Dashboard.
-        ├── 3_pesanan_masuk.py  # Vendor: Interface to view and accept incoming orders.
+        ├── 2_dashboard_sppg.py # Admin: Stock monitoring, Geospatial Supplier search, IoT Dashboard, and Menu Recommendations.
+        ├── 3_pesanan_masuk.py  # Vendor: Interface to view and accept incoming orders from SPPG.
         └── 4_dapur_produksi.py # Kitchen: Cooking log (stock deduction) and AI Meal QC scanner.
 ```
 
 **Key File Functions:**
-*   **`backend/main.py`**: The central controller. Routes requests like `/api/analyze` (AI), `/api/orders` (DB), and `/api/iot/log` (Sensors).
-*   **`backend/services.py`**: The "Brain". Contains `analyze_market_inventory` (Vision), `generate_menu_recommendation` (Reasoning), and `haversine_distance` (Geospatial).
-*   **`frontend/pages/1_upload.py`**: The main entry point for data. Handles image capture, AI analysis, and **GPS Location** input.
+*   **`backend/main.py`**: The API Gateway. It exposes endpoints like `/api/analyze` (for AI vision), `/api/orders` (for transaction management), and `/api/iot/log` (for sensor data). It handles error catching and response formatting.
+*   **`backend/services.py`**: Contains the core business logic. It includes `analyze_market_inventory` (sending images to Claude), `generate_menu_recommendation` (asking Claude for recipes), and `haversine_distance` (calculating distance between Vendor and SPPG).
+*   **`frontend/pages/2_dashboard_sppg.py`**: The Command Center for SPPG. It visualizes stock data, displays real-time IoT sensor readings, and allows admins to generate rescue menus for expiring items.
 
 ## 4. Implemented Features (Status Check)
 
 ### User Role: Mitra Pedagang (Vendor)
-*   **AI Inventory Scan:** Functional. Captures photo -> AI Identifies/Counts/Checks Quality -> Auto-fills form.
-*   **Real GPS Integration:** Functional. Vendors can input Latitude/Longitude to be discoverable by location.
-*   **Stock Management:** Functional. Saves verified stock to Supabase.
-*   **Order Management:** Functional. View incoming orders from SPPG and update status (Accept/Ship).
+*   **AI Inventory Scan:** ✅ **Fully Functional**. Captures photo -> AI Identifies/Counts/Checks Quality -> Auto-fills form.
+*   **Real GPS Integration:** ✅ **Fully Functional**. Vendors can input Latitude/Longitude to be discoverable by location.
+*   **Stock Management:** ✅ **Fully Functional**. Saves verified stock to Supabase.
+*   **Order Management:** ✅ **Fully Functional**. View incoming orders from SPPG and update status (Accept/Ship).
 
 ### User Role: SPPG (Admin/Kitchen)
-*   **Dashboard:** Functional. Real-time view of total stock, expiry warnings, and distribution charts.
-*   **Geospatial Supplier Search:** Functional. Search for ingredients (e.g., "Bawang") and sort by **Nearest Distance** (using Haversine formula).
-*   **IoT Smart Storage:** Functional. Real-time monitoring of warehouse Temperature & Humidity (via Simulator).
-*   **AI Menu Recommendation:** Functional. Generates recipes based on currently available stock ingredients.
-*   **Kitchen Production:** Functional. "Cook" feature deducts stock ingredients (bulk delete) and logs production.
-*   **AI Meal QC:** Functional. Scans cooked meals to detect spoilage and estimate nutrition.
+*   **Dashboard:** ✅ **Fully Functional**. Real-time view of total stock, expiry warnings, and distribution charts.
+*   **Geospatial Supplier Search:** ✅ **Fully Functional**. Search for ingredients (e.g., "Bawang") and sort by **Nearest Distance** (using Haversine formula).
+*   **IoT Smart Storage:** ✅ **Fully Functional**. Real-time monitoring of warehouse Temperature & Humidity (via Simulator) with historical graphs.
+*   **AI Menu Recommendation:** ✅ **Fully Functional**. Generates recipes (with Calories & Protein) based on currently available stock ingredients.
+*   **Expiry Notifications:** ✅ **Fully Functional**. Simulates WhatsApp alerts to Vendors (Warning) and SPPG (Rescue Recipe) for expiring items.
+*   **Kitchen Production:** ✅ **Fully Functional**. "Cook" feature deducts stock ingredients (bulk delete) and logs production.
+*   **AI Meal QC:** ✅ **Fully Functional**. Scans cooked meals to detect spoilage and estimate nutrition.
 
 ## 5. Application Data Flow (Main Use Case: Inventory Upload)
 
@@ -132,3 +132,7 @@ Located in `backend/services.py`, this function is the core of the inventory dig
     *   **Model:** Claude 3.5 Sonnet.
     *   **Temperature:** Set to `0.1` (Low) to ensure factual, analytical responses.
     *   **Output Enforcement:** The prompt explicitly requests a **raw JSON** output for easy parsing.
+
+---
+
+

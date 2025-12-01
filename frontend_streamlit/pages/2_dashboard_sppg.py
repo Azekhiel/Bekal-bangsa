@@ -4,12 +4,6 @@ import pandas as pd
 import plotly.express as px
 
 API_URL = "http://127.0.0.1:8000/api"
-import streamlit as st
-import requests
-import pandas as pd
-import plotly.express as px
-
-API_URL = "http://127.0.0.1:8000/api"
 
 st.set_page_config(page_title="Dashboard SPPG - Bekal Bangsa", page_icon="📊", layout="wide")
 
@@ -17,7 +11,7 @@ st.title("📊 Command Center SPPG")
 st.markdown("Pantau ketersediaan pangan lokal & Rencanakan menu bergizi.")
 
 # --- TABS FITUR ---
-tab1, tab2, tab3, tab4 = st.tabs(["📦 Monitoring Stok", "🔍 Cari Supplier (Matching)", "🍽️ Rekomendasi Menu", "🌡️ Smart Storage (IoT)"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Stok Nasional", "🔍 Cari Supplier (Matching)", "🍽️ Rekomendasi Menu (AI Chef)", "🌡️ Smart Storage (IoT)", "🔔 Notification Center"])
 
 # ==========================================
 # TAB 1: MONITORING STOK (GET /api/supplies)
@@ -26,7 +20,7 @@ with tab1:
     st.subheader("Real-time Inventory")
     
     # Tombol Refresh
-    if st.button("🔄 Refresh Data"):
+    if st.button("🔄 Refresh Data", key="btn_refresh_stok"):
         st.rerun()
 
     try:
@@ -74,92 +68,173 @@ with tab1:
 # TAB 2: PENCARIAN / MATCHING (GET Search)
 # ==========================================
 with tab2:
-    st.subheader("🔍 Cari Supplier Terdekat")
+    st.header("🔍 Cari Supplier Terdekat")
     
-    keyword = st.text_input("Butuh bahan apa?", placeholder="Contoh: Bawang, Telur, Bayam")
+    # Input Lokasi User (Simulasi SPPG Jakarta Pusat)
+    c_lat, c_long = st.columns(2)
+    user_lat = c_lat.number_input("Latitude Saya", value=-6.175392, format="%.6f")
+    user_long = c_long.number_input("Longitude Saya", value=106.827153, format="%.6f")
     
+    keyword = st.text_input("Cari bahan (misal: Bawang, Telur)", "")
+    
+    if st.button("Cari Supplier", key="btn_cari_supplier"):
+        if keyword:
+            with st.spinner(f"Mencari '{keyword}' terdekat..."):
+                try:
+                    # Panggil API Search dengan Lat/Long
+                    res = requests.get(f"{API_URL}/suppliers/search", params={
+                        "q": keyword,
+                        "lat": user_lat,
+                        "long": user_long
+                    })
+                    
+                    if res.status_code == 200:
+                        results = res.json()
+                        if results.get("data"): # Handle format return baru
+                            items = results["data"]
+                            st.success(f"Ditemukan {len(items)} supplier!")
+                            
+                            for item in items:
+                                with st.container(border=True):
+                                    c1, c2 = st.columns([3, 1])
+                                    with c1:
+                                        st.subheader(item['item_name']) # Fix key name
+                                        st.write(f"📍 **Jarak: {item.get('distance_km', '?')} km**")
+                                        st.write(f"👤 {item['owner_name']} | 🏠 {item['location']}")
+                                        st.write(f"📦 Stok: {item['quantity']} {item['unit']} | ⏳ Exp: {item['expiry_days']} hari")
+                                        if item.get('latitude'):
+                                            st.caption(f"GPS: {item['latitude']}, {item['longitude']}")
+                                        else:
+                                            st.caption("GPS: Simulasi (Data Vendor belum lengkap)")
+                                            
+                                    with c2:
+                                        if st.button("Pesan", key=f"btn_pesan_{item['id']}"):
+                                            # Simulasi masuk keranjang (Session State)
+                                            if 'cart' not in st.session_state:
+                                                st.session_state['cart'] = []
+                                            st.session_state['cart'].append(item)
+                                            st.toast("Masuk keranjang!")
+                        else:
+                            st.warning("Tidak ada supplier ditemukan.")
+                    else:
+                        st.error(f"Error API: {res.text}")
+                except Exception as e:
+                    st.error(f"Gagal koneksi: {e}")
+
+# ==========================================
+# TAB 3: REKOMENDASI MENU (AI Chef)
 # ==========================================
 with tab3:
-    st.subheader("🍽️ Asisten Gizi AI")
-    st.info("AI akan membuatkan menu berdasarkan stok yang tersedia di gudang saat ini.")
+    st.header("🍽️ AI Menu Planner (Program Makan Bergizi Gratis)")
+    st.info("Dapatkan rekomendasi menu masakan berdasarkan stok bahan yang tersedia.")
     
-    # Ambil list bahan unik dari database buat pilihan
+    # Ambil list item unik dari stok
     try:
         resp = requests.get(f"{API_URL}/supplies")
-        all_data = resp.json()
-        # Ambil nama unik
-        unique_ingredients = list(set([item['item_name'] for item in all_data]))
-    except:
-        unique_ingredients = ["Bawang", "Telur", "Bayam"] # Fallback kalau DB error
-
-    selected_ingredients = st.multiselect("Pilih Bahan Tersedia:", unique_ingredients, default=unique_ingredients[:3])
-    
-    if st.button("✨ Generate Menu Sekolah"):
-        if not selected_ingredients:
-            st.error("Pilih minimal 1 bahan.")
-        else:
-            with st.spinner("Koki AI sedang meracik menu..."):
-                try:
-                    payload = {"ingredients": selected_ingredients}
-                    resp_menu = requests.post(f"{API_URL}/recommend-menu", json=payload)
-                    menu = resp_menu.json()
-                    
-                    st.divider()
-                    st.markdown(f"## 🍲 {menu.get('menu_name', 'Menu Spesial')}")
-                    st.write(menu.get('description'))
-                    
-                    c1, c2 = st.columns(2)
-                    c1.success(f"**Gizi:** {menu.get('nutrition')}")
-                    c2.info(f"**Alasan:** {menu.get('reason')}")
-                    
-                except Exception as e:
-                    st.error(f"Gagal generate menu: {e}")
+        if resp.status_code == 200:
+            stock_data = resp.json()
+            if stock_data:
+                df_stock = pd.DataFrame(stock_data)
+                unique_items = df_stock['item_name'].unique().tolist()
+                
+                selected_ingredients = st.multiselect("Pilih Bahan Baku Tersedia:", unique_items)
+                
+                if st.button("👨‍🍳 Buat Rekomendasi Menu", type="primary"):
+                    if not selected_ingredients:
+                        st.warning("Pilih minimal 1 bahan baku.")
+                    else:
+                        with st.spinner("Koki AI sedang meracik resep..."):
+                            try:
+                                payload = {"ingredients": selected_ingredients}
+                                res_menu = requests.post(f"{API_URL}/recommend-menu", json=payload)
+                                
+                                if res_menu.status_code == 200:
+                                    menu = res_menu.json()
+                                    
+                                    st.success("✅ Menu Siap Disajikan!")
+                                    
+                                    with st.container(border=True):
+                                        c1, c2 = st.columns([2, 1])
+                                        with c1:
+                                            st.subheader(f"🍲 {menu.get('menu_name')}")
+                                            st.write(f"**Deskripsi:** {menu.get('description')}")
+                                            st.write(f"**Alasan:** {menu.get('reason')}")
+                                        with c2:
+                                            st.metric("Kalori", menu.get('nutrition', {}).get('calories', 'N/A'))
+                                            st.metric("Protein", menu.get('nutrition', {}).get('protein', 'N/A'))
+                                            
+                                    st.json(menu) # Debug view
+                                else:
+                                    st.error(f"Gagal: {res_menu.text}")
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+            else:
+                st.warning("Data stok kosong.")
+    except Exception as e:
+        st.error(f"Gagal load stok: {e}")
 
 # ==========================================
 # TAB 4: SMART STORAGE (IoT Monitoring)
 # ==========================================
 with tab4:
-    st.subheader("🌡️ Smart Storage Monitoring")
-    st.info("Data real-time dari sensor IoT di gudang penyimpanan.")
+    st.header("🌡️ Smart Storage Monitoring")
+    st.info("Data sensor real-time dari gudang penyimpanan (IoT).")
     
-    if st.button("🔄 Refresh Sensor"):
+    # Tombol Refresh Manual (Ganti Autorefresh)
+    if st.button("🔄 Refresh Sensor", key="btn_refresh_iot"):
         st.rerun()
-        
+    
     try:
-        # Ambil data logs dari API
-        resp = requests.get(f"{API_URL}/iot/logs")
-        logs = resp.json()
-        
-        if logs:
-            df_iot = pd.DataFrame(logs)
-            
-            # Ambil data terbaru (row pertama karena desc sort)
-            latest = df_iot.iloc[0]
-            
-            # 1. Metrics Utama
-            c1, c2, c3 = st.columns(3)
-            
-            # Logic Warna Suhu (Ideal 20-25)
-            temp_val = latest['temperature']
-            temp_delta = "Normal"
-            if temp_val > 25: temp_delta = "Panas!"
-            elif temp_val < 20: temp_delta = "Dingin!"
-            
-            c1.metric("Suhu Gudang", f"{temp_val} °C", delta=temp_delta, delta_color="inverse")
-            c2.metric("Kelembaban", f"{latest['humidity']} %")
-            c3.metric("Status Sensor", "ONLINE", delta="Active")
-            
-            # 2. Grafik Line Chart (History)
-            st.caption("Grafik Suhu & Kelembaban (50 Data Terakhir)")
-            
-            # Melt dataframe biar bisa 2 garis dalam 1 chart
-            df_chart = df_iot[['created_at', 'temperature', 'humidity']].melt('created_at', var_name='Metric', value_name='Value')
-            
-            fig = px.line(df_chart, x='created_at', y='Value', color='Metric', markers=True)
-            st.plotly_chart(fig, use_container_width=True)
-            
+        res = requests.get(f"{API_URL}/iot/logs")
+        if res.status_code == 200:
+            logs = res.json()
+            if logs:
+                df_iot = pd.DataFrame(logs)
+                df_iot['created_at'] = pd.to_datetime(df_iot['created_at']) # Fix column name timestamp -> created_at
+                
+                # Metric Cards
+                latest = df_iot.iloc[0]
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Suhu Saat Ini", f"{latest['temperature']} °C", delta="Normal")
+                m2.metric("Kelembaban", f"{latest['humidity']} %", delta="Stabil")
+                m3.metric("Status Device", "ONLINE 🟢")
+                
+                # Charts
+                st.subheader("Grafik Suhu & Kelembaban")
+                st.line_chart(df_iot.set_index('created_at')[['temperature', 'humidity']])
+            else:
+                st.warning("Belum ada data sensor. Jalankan 'iot_simulator.py' di backend.")
         else:
-            st.warning("Belum ada data sensor. Jalankan 'iot_simulator.py' di backend.")
-            
+            st.error("Gagal ambil data IoT.")
     except Exception as e:
-        st.error(f"Gagal koneksi ke IoT Server: {e}")
+        st.error(f"Koneksi IoT Error: {e}")
+
+# ==========================================
+# TAB 5: NOTIFICATION CENTER
+# ==========================================
+with tab5:
+    st.header("🔔 Notification Center (WhatsApp Simulation)")
+    st.info("Simulasi pesan WhatsApp yang dikirim ke Vendor & SPPG saat ada stok kritis.")
+    
+    if st.button("🔄 Jalankan Pengecekan Harian (Daily Check)", type="primary", key="btn_daily_check"):
+        with st.spinner("🤖 AI sedang mengecek expiry date & menghitung jarak..."):
+            try:
+                res = requests.post(f"{API_URL}/notifications/trigger")
+                if res.status_code == 200:
+                    data = res.json()
+                    msgs = data.get("data", [])
+                    
+                    if not msgs:
+                        st.success("✅ Semua stok aman! Tidak ada notifikasi yang perlu dikirim.")
+                    else:
+                        st.warning(f"⚠️ Ditemukan {len(msgs)} isu stok!")
+                        for i, msg in enumerate(msgs):
+                            with st.chat_message(msg.get('role', 'System'), avatar="📱"):
+                                st.write(f"**To: {msg.get('to', 'User')}**")
+                                st.markdown(f"_{msg.get('message', '')}_")
+                                if "RECIPE" in msg.get('type', ''):
+                                    st.caption("💡 AI Recommendation included")
+                else:
+                    st.error(f"Gagal trigger notifikasi: {res.text}")
+            except Exception as e:
+                st.error(f"Error: {e}")

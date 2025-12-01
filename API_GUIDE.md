@@ -38,9 +38,37 @@ We use **OpenAPI** to generate strict TypeScript types.
         *   `long`: float (Optional, default=106.827153) - User's current Longitude.
     *   **Response:** List of items sorted by **Distance** (nearest first).
 
-### D. IoT Smart Storage
-*   **GET** `/api/iot/logs`: Get historical sensor data.
+### D. Menu Recommendation (SPPG)
+*   **POST** `/api/recommend-menu`: Generate AI menu based on ingredients.
+    *   **Input:** `{"ingredients": ["Bawang", "Telur"]}`
+    *   **Output:**
+        ```json
+        {
+            "menu_name": "Telur Balado",
+            "description": "...",
+            "nutrition": {
+                "calories": "200 kcal",
+                "protein": "12g"
+            },
+            "reason": "..."
+        }
+        ```
+
+### E. Order Management
+*   **POST** `/api/orders`: Create a new order (SPPG).
+*   **GET** `/api/orders/umkm`: Get incoming orders (Vendor).
+*   **PUT** `/api/orders/{order_id}`: Update order status (Vendor).
+
+### F. Kitchen Production
+*   **POST** `/api/kitchen/cook`: Log cooking production and deduct stock.
+*   **POST** `/api/kitchen/scan-meal`: QC scan for cooked meals.
+
+### G. IoT Smart Storage
+*   **GET** `/api/iot/logs`: Get historical sensor data (Temperature/Humidity).
 *   **POST** `/api/iot/log`: Send new sensor data (used by Simulator).
+
+### H. Notifications
+*   **POST** `/api/notifications/trigger`: Manually trigger expiry checks and WhatsApp alerts.
 
 ## 4. Authentication
 *   Currently, the API is open (Hackathon mode).

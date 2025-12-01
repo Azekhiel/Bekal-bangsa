@@ -1,4 +1,7 @@
 import streamlit as st
+import subprocess
+import sys
+import os
 
 # Konfigurasi Halaman (Wajib di baris pertama)
 st.set_page_config(
@@ -6,6 +9,31 @@ st.set_page_config(
     page_icon="🍱",
     layout="wide"
 )
+
+# --- AUTO-START IOT SIMULATOR ---
+@st.cache_resource
+def start_iot_simulator():
+    """
+    Menjalankan IoT Simulator secara otomatis di background.
+    Menggunakan st.cache_resource agar hanya dijalankan SEKALI per sesi server.
+    """
+    # Cek apakah script ada
+    script_path = "backend/iot_simulator.py"
+    if os.path.exists(script_path):
+        # Jalankan sebagai subprocess non-blocking
+        # Gunakan sys.executable untuk memastikan python yang sama
+        try:
+            process = subprocess.Popen([sys.executable, script_path], cwd=os.getcwd())
+            return process
+        except Exception as e:
+            st.error(f"Gagal menjalankan simulator: {e}")
+            return None
+    return None
+
+# Panggil fungsi start
+simulator_process = start_iot_simulator()
+if simulator_process:
+    st.toast("🌡️ IoT Simulator berjalan di background!", icon="✅")
 
 # --- CSS Styling (Biar warnanya Emerald & Gold) ---
 st.markdown("""
@@ -83,7 +111,7 @@ with col2:
     
     st.write("") # Spacer
     if st.button("Masuk sebagai Admin SPPG ➡️", use_container_width=True):
-        st.switch_page("pages/2_dashboard_SPPG.py")
+        st.switch_page("pages/2_dashboard_sppg.py")
 
 # --- Footer ---
 st.write("---")
