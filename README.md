@@ -21,7 +21,7 @@ The platform focuses on solving three core issues that threaten the stability an
 
 ### 💡Our Solution:
 
-**A. 🤝 Mitra Pedagang (UMKM) Empowerment:**
+**A. 🤝 Mitra UMKM Empowerment:**
 - **Digital Cataloging:** 
     - Function: Helps UMKM create a Digital Catalog (inventory, price, quantity, and freshness with expiry date prediction) for their stock by simply taking photo. 
     - Outcome: Local UMKM gain smart cataloging for their stock.
@@ -58,7 +58,7 @@ The platform focuses on solving three core issues that threaten the stability an
 
 
 ### 👥 Users
-1.  **Pedagang Pasar (Vendors):** Upload photos of their inventory to sell/donate before it spoils.
+1.  **UMKM (Vendors):** Upload photos of their inventory to sell/donate before it spoils.
 2.  **Admin SPPG (Kitchen):** Receive ingredients, plan menus, cook meals, and monitor storage conditions.
 
 ### 🛠️ Technology Stack
@@ -151,7 +151,7 @@ Bekal-bangsa/
 
 ## 4. Implemented Features (Status Check)
 
-### 🛒 For Pedagang (Vendors)
+### 🛒 For UMKM (Vendors)
 -   **[✅ Functional] AI Inventory Scan:** Upload a photo, AI detects items, quantity, and freshness.
 -   **[✅ Functional] GPS Location:** Auto-detects (simulated) or manual input of vendor location.
 -   **[✅ Functional] Search Nearest SPPG:** Finds the closest Kitchen Hub based on GPS distance.
