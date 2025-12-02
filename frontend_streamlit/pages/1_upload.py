@@ -25,7 +25,7 @@ with st.expander("👤 Identitas Pedagang", expanded=True):
 st.write("---")
 st.subheader("📸 Masukkan Gambar Barang")
 
-tab1, tab2 = st.tabs(["📸 Kamera Langsung", "📂 Upload File"])
+tab1, tab2, tab3 = st.tabs(["📸 Kamera Langsung", "📂 Upload File", "🔍 Cari SPPG Terdekat"])
 img_file = None
 
 with tab1:
@@ -34,6 +34,38 @@ with tab1:
 with tab2:
     uploaded_file = st.file_uploader("Pilih foto dari galeri/komputer", type=['jpg', 'jpeg', 'png'])
     if uploaded_file: img_file = uploaded_file
+
+with tab3:
+    st.subheader("🔍 Cari Kitchen Hub (SPPG) Terdekat")
+    st.info("Temukan lokasi drop-off bahan makanan terdekat dari lokasi Anda.")
+    
+    if st.button("Cari SPPG Terdekat", type="primary"):
+        with st.spinner("Mencari lokasi..."):
+            try:
+                # Panggil API Search SPPG
+                res = requests.get(f"{API_URL}/sppg/search", params={"lat": latitude, "long": longitude})
+                if res.status_code == 200:
+                    data = res.json()
+                    results = data.get("data", [])
+                    
+                    if results:
+                        st.success(f"Ditemukan {len(results)} SPPG terdekat!")
+                        for sppg in results:
+                            with st.container(border=True):
+                                c1, c2 = st.columns([3, 1])
+                                with c1:
+                                    st.markdown(f"### 🏢 {sppg['name']}")
+                                    st.write(f"📍 {sppg['address']}")
+                                    st.caption(f"📞 {sppg['phone']}")
+                                with c2:
+                                    st.metric("Jarak", f"{sppg['distance_km']} km")
+                                    st.button("Hubungi", key=f"btn_sppg_{sppg['id']}")
+                    else:
+                        st.warning("Tidak ada SPPG ditemukan.")
+                else:
+                    st.error(f"Gagal mencari: {res.text}")
+            except Exception as e:
+                st.error(f"Error koneksi: {e}")
 
 # Inisialisasi variabel data
 photo_url = None

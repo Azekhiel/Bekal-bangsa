@@ -1,138 +1,174 @@
-# Bekal Bangsa - Project Documentation
+# 🍱 Bekal Bangsa 
+
+**Codebase Audit & Documentation Report**
+*Date: December 2, 2025*
+
+---
 
 ## 1. Project Context & Objectives
-**Bekal Bangsa** is a digital ecosystem designed to fix the **"Makan Siang Bergizi Gratis" (Free Nutritious Lunch)** program by connecting traditional market vendors (UMKM) directly with central kitchens (SPPG).
 
-*   **Main Problem Solved:** Streamlining the supply chain from local markets to school kitchens, ensuring ingredient freshness, minimizing waste, and automating nutritional planning.
-*   **Target Users:**
-    *   **Mitra Pedagang (Vendors):** Use the app to digitize their market inventory simply by taking photos.
-    *   **SPPG (Admin/Kitchen):** Monitor national stock availability, source ingredients locally, plan nutritious menus using AI, and manage mass cooking production.
-*   **Technology Stack:**
-    *   **Frontend:** Streamlit (Python)
-    *   **Backend:** FastAPI (Python)
-    *   **Database:** Supabase (PostgreSQL + Storage)
-    *   **AI Models:** **Claude 3.5 Sonnet** (via Kolosal API) for both Computer Vision (Inventory/QC) and Reasoning (Menu Generation).
-    *   **IoT:** Simulated Smart Storage sensors (Temperature/Humidity).
+### 🎯 What is this project?
+**Bekal Bangsa** is a comprehensive platform designed to address critical issues in the **MBG (Makan Bergizi Gratis)** program and the local food (UMKM) ecosystem. The system addresses critical failures across the entire food supply chain, transforming manual operations into an intelligent, traceable ecosystem.
 
-## 2. Installation & How to Run
+**Current Pain Points:**
+The platform focuses on solving three core issues that threaten the stability and health objectives of the MBG program:
+
+1. **Supply Chain Security & Safety Risk:**
+- Issue: The lack of visual quality standards, manual inventory checks, and poor tracking of ingredient shelf-life lead directly to high risks of food poisoning and the use of substandard ingredients.
+
+2. **Economic Exclusion of UMKM (Vendor Marginalization):**
+- Issue: Traditional market vendors (UMKM) are often locked out of large-scale government procurement due to complex administrative barriers and a lack of digital tools, causing local economies to suffer.
+
+3. **Nutritional Inefficiency & Food Waste:**
+- Issue: A constant mismatch between available market supply and kitchen demand leads to ingredients expiring (food waste). Menus are often planned generically, failing to maximize nutritional value based on fresh local stock.
+
+**Our Solution:**
+Bekal Bangsa integrates UMKMs into the MBG supply chain by:
+-   **Connecting Vendors to Kitchens:** Helping UMKMs find the nearest SPPG (Kitchen Hub) to sell their inventory.
+-   **Digitalizing Operations:** Creating a unified digital catalog for seamless stock management.
+-   **Ensuring Safety & Nutrition:** Using AI to validate food quality (non-toxic) and calculate nutritional value.
+-   **Reducing Waste:** Matching expiring ingredients with immediate kitchen needs.
+
+### 👥 Users
+1.  **Pedagang Pasar (Vendors):** Upload photos of their inventory to sell/donate before it spoils.
+2.  **Admin SPPG (Kitchen):** Receive ingredients, plan menus, cook meals, and monitor storage conditions.
+
+### 🛠️ Technology Stack
+-   **Backend:** Python **FastAPI** (High performance, async support).
+-   **Frontend:** **Streamlit** (Rapid prototyping for Data/AI apps).
+-   **Database:** **Supabase** (PostgreSQL) for relational data and Realtime subscriptions.
+-   **AI Models:**
+    -   **Claude 3.5 Sonnet (via Kolosal):** For Vision (Ingredient Analysis) and Reasoning (Menu Recommendation, Nutrition Estimation).
+-   **IoT:** Simulated Temperature/Humidity sensors for Smart Storage.
+
+---
+
+## 2. Installation & Run Tutorial
 
 ### Prerequisites
-*   Python 3.10+
-*   Supabase Account (URL & Key)
-*   Kolosal API Key (for Claude 3.5 Sonnet)
+-   Python 3.9+
+-   Supabase Account & Credentials
 
-### Setup
-1.  **Clone the repository**
-2.  **Create Virtual Environment:**
-    ```bash
-    python -m venv venv
-    # Windows
-    venv\Scripts\activate
-    # Mac/Linux
-    source venv/bin/activate
-    ```
-3.  **Install Dependencies:**
-    ```bash
-    pip install -r backend/requirements.txt
-    ```
-4.  **Environment Variables:**
-    Create a `.env` file in `backend/` with:
-    ```ini
-    SUPABASE_URL=your_supabase_url
-    SUPABASE_KEY=your_supabase_key
-    KOLOSAL_API_KEY=your_kolosal_key
-    KOLOSAL_BASE_URL=https://llm.kolosal.ai/v1
-    ```
+### Step-by-Step Guide
 
-### Running the App
-1.  **Start Backend (FastAPI):**
-    ```bash
-    uvicorn backend.main:app --reload
-    ```
-    *API Docs available at: http://127.0.0.1:8000/docs*
+#### 1. Clone & Setup Environment
+```bash
+git clone <repository_url>
+cd Bekal-bangsa
 
-2.  **Start Frontend (Streamlit):**
-    ```bash
-    streamlit run frontend_streamlit/Home.py
-    ```
+# Create Virtual Environment
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
 
-3.  **IoT Simulator:**
-    *   The simulator (`backend/iot_simulator.py`) is designed to **auto-start** when you run `Home.py`.
-    *   If you need to run it manually: `python backend/iot_simulator.py`
+# Install Dependencies
+pip install -r backend/requirements.txt
+pip install -r frontend_streamlit/requirements.txt
+```
+
+#### 2. Configure Environment Variables
+Create a `.env` file in the `backend/` folder:
+```ini
+SUPABASE_URL="your_supabase_url"
+SUPABASE_KEY="your_supabase_anon_key"
+KOLOSAL_API_KEY="your_kolosal_api_key"
+```
+
+#### 3. Run the Backend (FastAPI)
+```bash
+cd backend
+uvicorn main:app --reload
+# Server running at http://127.0.0.1:8000
+```
+
+#### 4. Run the IoT Simulator (Optional)
+To generate dummy sensor data:
+```bash
+python backend/iot_simulator.py
+```
+
+#### 5. Run the Frontend (Streamlit)
+Open a new terminal:
+```bash
+streamlit run frontend_streamlit/Home.py
+# App running at http://localhost:8501
+```
+
+---
 
 ## 3. Folder Structure & File Responsibilities
 
 ```text
-.
+Bekal-bangsa/
 ├── backend/
-│   ├── main.py           # API Gateway: Central controller routing all HTTP requests (Upload, Analyze, Orders, IoT).
-│   ├── services.py       # The "Brain": Handles AI logic (Claude), Database interactions, and Geospatial calculations.
-│   ├── models.py         # Data Validation: Pydantic models ensuring data integrity (e.g., SupplyItem, IoTLogRequest).
-│   ├── iot_simulator.py  # IoT Simulation: Generates dummy sensor data (Temp/Humidity) for the Smart Storage feature.
-│   ├── database.py       # Database Connection: Initializes the Supabase client.
-│   └── *.sql             # SQL Scripts: Database schema definitions and fixes (e.g., RLS, GPS columns).
-└── frontend_streamlit/
-    ├── Home.py           # Entry Point: Landing page for role selection (Pedagang vs SPPG) and IoT Simulator auto-start.
-    └── pages/
-        ├── 1_upload.py         # Vendor: AI Inventory scanning with Real GPS input.
-        ├── 2_dashboard_sppg.py # Admin: Stock monitoring, Geospatial Supplier search, IoT Dashboard, and Menu Recommendations.
-        ├── 3_pesanan_masuk.py  # Vendor: Interface to view and accept incoming orders from SPPG.
-        └── 4_dapur_produksi.py # Kitchen: Cooking log (stock deduction) and AI Meal QC scanner.
+│   ├── main.py             # Entry point. Defines API endpoints and connects services.
+│   ├── services.py         # Business logic: AI calls, DB operations, Distance calc.
+│   ├── models.py           # Pydantic models for Data Validation (Request/Response).
+│   ├── prompts.py          # Centralized AI Prompts for Claude Sonnet.
+│   ├── iot_simulator.py    # Script to simulate IoT sensor data sending to API.
+│   └── database.py         # Supabase client initialization.
+├── frontend_streamlit/
+│   ├── Home.py             # Main Landing Page.
+│   └── pages/
+│       ├── 1_upload.py     # Vendor: Upload photo, AI analysis, Search SPPG.
+│       ├── 2_dashboard_sppg.py # Admin: View stock, IoT logs, Menu Recs.
+│       ├── 3_tracking.py   # Tracking orders (Basic).
+│       └── 4_dapur_produksi.py # Kitchen: Cook meals, Deduct stock, Nutrition Info.
+└── README.md               # This documentation.
 ```
-
-**Key File Functions:**
-*   **`backend/main.py`**: The API Gateway. It exposes endpoints like `/api/analyze` (for AI vision), `/api/orders` (for transaction management), and `/api/iot/log` (for sensor data). It handles error catching and response formatting.
-*   **`backend/services.py`**: Contains the core business logic. It includes `analyze_market_inventory` (sending images to Claude), `generate_menu_recommendation` (asking Claude for recipes), and `haversine_distance` (calculating distance between Vendor and SPPG).
-*   **`frontend/pages/2_dashboard_sppg.py`**: The Command Center for SPPG. It visualizes stock data, displays real-time IoT sensor readings, and allows admins to generate rescue menus for expiring items.
-
-## 4. Implemented Features (Status Check)
-
-### User Role: Mitra Pedagang (Vendor)
-*   **AI Inventory Scan:** ✅ **Fully Functional**. Captures photo -> AI Identifies/Counts/Checks Quality -> Auto-fills form.
-*   **Real GPS Integration:** ✅ **Fully Functional**. Vendors can input Latitude/Longitude to be discoverable by location.
-*   **Stock Management:** ✅ **Fully Functional**. Saves verified stock to Supabase.
-*   **Order Management:** ✅ **Fully Functional**. View incoming orders from SPPG and update status (Accept/Ship).
-
-### User Role: SPPG (Admin/Kitchen)
-*   **Dashboard:** ✅ **Fully Functional**. Real-time view of total stock, expiry warnings, and distribution charts.
-*   **Geospatial Supplier Search:** ✅ **Fully Functional**. Search for ingredients (e.g., "Bawang") and sort by **Nearest Distance** (using Haversine formula).
-*   **IoT Smart Storage:** ✅ **Fully Functional**. Real-time monitoring of warehouse Temperature & Humidity (via Simulator) with historical graphs.
-*   **AI Menu Recommendation:** ✅ **Fully Functional**. Generates recipes (with Calories & Protein) based on currently available stock ingredients.
-*   **Expiry Notifications:** ✅ **Fully Functional**. Simulates WhatsApp alerts to Vendors (Warning) and SPPG (Rescue Recipe) for expiring items.
-*   **Kitchen Production:** ✅ **Fully Functional**. "Cook" feature deducts stock ingredients (bulk delete) and logs production.
-*   **AI Meal QC:** ✅ **Fully Functional**. Scans cooked meals to detect spoilage and estimate nutrition.
-
-## 5. Application Data Flow (Main Use Case: Inventory Upload)
-
-1.  **Capture:** Vendor takes a photo of their goods using **Streamlit** (`1_upload.py`) and enters their **GPS Location**.
-2.  **Upload:** Image is sent to **FastAPI** (`/api/upload`), which saves it to **Supabase Storage** and returns a public URL.
-3.  **Analyze:** Image bytes are sent to **FastAPI** (`/api/analyze`).
-4.  **AI Processing:**
-    *   `backend/services.py` encodes the image to Base64.
-    *   Sends request to **Claude 3.5 Sonnet** (via Kolosal).
-    *   Claude analyzes the image for Item Name, Quantity, Unit, Freshness, and Expiry Prediction.
-5.  **Verification:** The AI returns a JSON response. Streamlit populates a form with these values for the Vendor to review/edit.
-6.  **Persistence:** Vendor clicks "Simpan". Data (including GPS) is sent to (`/api/supplies`) and stored in **Supabase Database**.
-7.  **Visualization:** The new stock immediately appears on the **SPPG Dashboard**, searchable by distance.
-
-## 6. AI Logic Explanation: `analyze_market_inventory`
-
-Located in `backend/services.py`, this function is the core of the inventory digitization.
-
-*   **Multi-Tasking Prompt:** The prompt instructs Claude to perform four distinct cognitive tasks simultaneously on a single image:
-    1.  **Identification:** Recognize the object using local Indonesian terminology (e.g., "Cabe Rawit").
-    2.  **Counting (Logic):**
-        *   If discrete (eggs, fruits): Count individual items.
-        *   If bulk/containers (rice sacks): Count the containers.
-        *   If piled (heaps of chili): Estimate as "1 Pile/Kg".
-    3.  **Quality Check:** Analyze visual features like skin texture, color vibrancy, and spots to determine freshness ("Sangat Segar", "Layum", etc.).
-    4.  **Expiry Prediction:** Estimate remaining shelf life (in days) based on the visual freshness assessment.
-
-*   **Technical Implementation:**
-    *   **Model:** Claude 3.5 Sonnet.
-    *   **Temperature:** Set to `0.1` (Low) to ensure factual, analytical responses.
-    *   **Output Enforcement:** The prompt explicitly requests a **raw JSON** output for easy parsing.
 
 ---
 
+## 4. Implemented Features (Status Check)
 
+### 🛒 For Pedagang (Vendors)
+-   **[✅ Functional] AI Inventory Scan:** Upload a photo, AI detects items, quantity, and freshness.
+-   **[✅ Functional] GPS Location:** Auto-detects (simulated) or manual input of vendor location.
+-   **[✅ Functional] Search Nearest SPPG:** Finds the closest Kitchen Hub based on GPS distance.
+
+### 👨‍🍳 For SPPG (Kitchen Admin)
+-   **[✅ Functional] Smart Dashboard:** View available supplies from all vendors.
+-   **[✅ Functional] AI Menu Recommendation:** Generates recipes based on expiring ingredients.
+-   **[✅ Functional] Kitchen Production:**
+    -   One-click "Cook" button.
+    -   Auto-deducts stock from DB.
+    -   **AI Nutrition Est:** Calculates Calories/Protein per serving.
+    -   **AI Safety Check:** Estimates shelf-life.
+-   **[✅ Functional] IoT Monitoring:** Real-time chart of storage temperature/humidity.
+-   **[✅ Functional] Expiry Alerts:** WhatsApp-style notifications for expiring batches.
+
+---
+
+## 5. Application Data Flow (End-to-End)
+
+**Scenario: A Vendor uploads a basket of vegetables.**
+
+1.  **Capture:** User takes a photo in `1_upload.py` (Streamlit).
+2.  **Upload:** Image is sent to `POST /api/upload` -> Saved to Supabase Storage -> Returns URL.
+3.  **Analyze:** Image bytes sent to `POST /api/analyze`.
+    -   **Backend:** `services.analyze_market_inventory` calls **Claude 3.5 Sonnet**.
+    -   **AI:** Identifies "5kg Spinach, Fresh".
+    -   **Response:** JSON data returned to Frontend.
+4.  **Review:** User verifies data in Streamlit form, adds GPS location.
+5.  **Save:** User clicks "Simpan". Data sent to `POST /api/supplies`.
+    -   **Database:** Saved to `supplies` table in Supabase.
+6.  **Visualize:** Data immediately appears on `2_dashboard_sppg.py` for the Kitchen Admin to see.
+
+---
+
+## 6. AI Logic Explanation
+
+### `analyze_market_inventory` (in `backend/services.py`)
+
+This function is the "Brain" of the intake process. It uses a **Single-Shot Prompting** strategy with Claude 3.5 Sonnet to perform three tasks simultaneously:
+
+1.  **Object Detection & Counting:** It visually identifies items (e.g., "Tomatoes") and estimates quantity (e.g., "3 kg" or "10 pcs").
+2.  **Quality Assessment:** It analyzes visual cues (color, texture) to determine freshness (e.g., "Fresh", "Wilting", "Rotten").
+3.  **Expiry Prediction:** Based on the item type and visual state, it estimates `expiry_days` (e.g., "Spinach" + "Wilting" = 1 day left).
+
+**How it works:**
+-   The image is encoded in Base64.
+-   Sent to Kolosal API with a strict system prompt: *"You are an expert food quality inspector..."*
+-   The model is forced to output **ONLY JSON** (no markdown), ensuring the backend can parse it directly into Pydantic models without regex hacking.

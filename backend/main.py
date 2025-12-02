@@ -8,7 +8,10 @@ from services import (
     upload_image_to_supabase,
     kolosal_client,
     calculate_meal_expiry,
-    check_expiry_and_notify
+    check_expiry_and_notify,
+    cook_meal,
+    analyze_cooked_meal,
+    search_nearest_sppg
 )
 from database import supabase
 from models import SupplyItem, MenuRequest, OrderRequest, OrderStatusUpdate, CookRequest, MealAnalysisRequest, IoTLogRequest
@@ -194,40 +197,18 @@ async def update_order_status(order_id: int, update: OrderStatusUpdate):
 
 # --- FITUR 10: DAPUR PRODUKSI (COOKING) ---
 @app.post("/api/kitchen/cook")
-async def cook_meal(request: CookRequest):
+async def cook_meal_endpoint(request: CookRequest):
     """
     Kurangi stok & Catat Produksi dengan Analisis Safety Lengkap
     """
     try:
-        # 1. Deduct Stock (Bulk Delete - Lebih Cepat)
-        if request.ingredients_ids:
-            supabase.table("supplies").delete().in_("id", request.ingredients_ids).execute()
+        # Panggil logic di services.py
+        result = cook_meal(request.menu_name, request.qty_produced, request.ingredients_ids)
         
-        # 2. Tanya AI (Panggil fungsi yang baru kita update)
-        # Note: Pastikan import calculate_meal_expiry sudah ada di atas
-        safety_analysis = calculate_meal_expiry(request.menu_name)
-        
-        # Ambil data dari hasil AI
-        hours_room = safety_analysis.get("room_temp_hours", 4)
-        hours_fridge = safety_analysis.get("fridge_hours", 12)
-        tips_raw = safety_analysis.get("storage_tips", "Simpan dengan baik.")
-        
-        # Format Tips biar informatif di Database/Frontend
-        # Contoh: "Jangan tutup panas. (Tahan 4 jam suhu ruang, 12 jam di kulkas)"
-        formatted_tips = f"{tips_raw} (Tahan {hours_fridge} jam jika masuk kulkas)"
-        
-        # 3. Simpan ke meal_productions
-        data = {
-            "menu_name": request.menu_name,
-            "qty_produced": request.qty_produced,
-            # Kita set expiry date berdasarkan SUHU RUANG (Skenario Terburuk/Aman)
-            "expiry_datetime": (datetime.now() + timedelta(hours=hours_room)).isoformat(),
-            "status": "fresh",
-            "storage_tips": formatted_tips # Simpan tips lengkap di sini
-        }
-        
-        res = supabase.table("meal_productions").insert(data).execute()
-        return {"status": "success", "data": res.data}
+        if "error" in result:
+             raise HTTPException(status_code=500, detail=result["error"])
+             
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -288,3 +269,15 @@ def trigger_expiry_notifications():
         import traceback
         traceback.print_exc() # Print ke terminal backend
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+# --- FITUR 13: CARI SPPG TERDEKAT (UMKM) ---
+@app.get("/api/sppg/search")
+async def find_nearest_sppg(lat: float, long: float):
+    """
+    Cari SPPG (Kitchen Hub) terdekat untuk drop-off bahan makanan.
+    """
+    try:
+        results = search_nearest_sppg(lat, long)
+        return {"status": "success", "data": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -35,11 +35,32 @@ with tab1:
                     "qty_produced": qty,
                     "ingredients_ids": bahan_terpilih
                 }
-                res = requests.post(f"{API_URL}/kitchen/cook", json=payload)
-                if res.status_code == 200:
-                    st.success("Produksi tercatat! Bahan baku telah dikurangi dari gudang.")
-                else:
-                    st.error("Gagal mencatat produksi.")
+                with st.spinner("Koki AI sedang memasak & menghitung gizi..."):
+                    try:
+                        res = requests.post(f"{API_URL}/kitchen/cook", json=payload)
+                        if res.status_code == 200:
+                            data = res.json()
+                            st.success(f"✅ {data.get('message', 'Produksi tercatat!')}")
+                            
+                            # Display Nutrition
+                            nut = data.get('nutrition_estimate', {})
+                            if nut:
+                                st.markdown("#### 📊 Estimasi Nutrisi per Porsi")
+                                c1, c2, c3, c4 = st.columns(4)
+                                c1.metric("Kalori", nut.get('calories', '-'))
+                                c2.metric("Protein", nut.get('protein', '-'))
+                                c3.metric("Karbo", nut.get('carbs', '-'))
+                                c4.metric("Lemak", nut.get('fats', '-'))
+                                
+                            with st.expander("ℹ️ Info Keamanan Pangan"):
+                                safety = data.get('safety_analysis', {})
+                                st.write(f"**Tips:** {safety.get('storage_tips', '-')}")
+                                st.write(f"**Tahan Suhu Ruang:** {safety.get('room_temp_hours')} jam")
+                                
+                        else:
+                            st.error(f"Gagal mencatat produksi: {res.text}")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
         else:
             st.info("Gudang kosong.")
     except:

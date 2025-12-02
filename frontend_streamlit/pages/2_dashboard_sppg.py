@@ -154,14 +154,32 @@ with tab3:
                                     st.success("✅ Menu Siap Disajikan!")
                                     
                                     with st.container(border=True):
-                                        c1, c2 = st.columns([2, 1])
-                                        with c1:
-                                            st.subheader(f"🍲 {menu.get('menu_name')}")
-                                            st.write(f"**Deskripsi:** {menu.get('description')}")
-                                            st.write(f"**Alasan:** {menu.get('reason')}")
-                                        with c2:
-                                            st.metric("Kalori", menu.get('nutrition', {}).get('calories', 'N/A'))
-                                            st.metric("Protein", menu.get('nutrition', {}).get('protein', 'N/A'))
+                                        st.subheader(f"🍲 {menu.get('menu_name')}")
+                                        st.write(f"**Deskripsi:** {menu.get('description')}")
+                                        st.write(f"**Alasan:** {menu.get('reason')}")
+                                        
+                                        st.divider()
+                                        
+                                        col_ing, col_steps = st.columns(2)
+                                        with col_ing:
+                                            st.markdown("#### 🛒 Bahan Diperlukan")
+                                            for ing in menu.get('ingredients_needed', []):
+                                                st.markdown(f"- {ing}")
+                                                
+                                        with col_steps:
+                                            st.markdown("#### 👨‍🍳 Langkah Memasak")
+                                            for i, step in enumerate(menu.get('cooking_steps', []), 1):
+                                                st.markdown(f"**{i}.** {step}")
+                                        
+                                        st.divider()
+                                        st.markdown("#### 📊 Informasi Gizi")
+                                        nut = menu.get('nutrition', {})
+                                        c1, c2, c3, c4, c5 = st.columns(5)
+                                        c1.metric("Kalori", nut.get('calories', 'N/A'))
+                                        c2.metric("Protein", nut.get('protein', 'N/A'))
+                                        c3.metric("Karbo", nut.get('carbs', 'N/A'))
+                                        c4.metric("Lemak", nut.get('fats', 'N/A'))
+                                        c5.metric("Vitamin", nut.get('vitamins', 'N/A'))
                                             
                                     st.json(menu) # Debug view
                                 else:

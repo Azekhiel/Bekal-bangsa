@@ -9,12 +9,15 @@ from datetime import datetime, timedelta
 from fastapi import UploadFile
 import time
 import math
+from prompts import (
+    get_inventory_analysis_prompt,
+    get_menu_recommendation_prompt,
+    get_cooked_meal_analysis_prompt,
+    get_meal_expiry_prompt
+)
 
 # Explicitly load .env from the same directory
 load_dotenv(Path(__file__).parent / ".env")
-
-# Tentukan lokasi folder prompts
-PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 # --- SETUP CLIENTS ---
 kolosal_client = OpenAI(
@@ -37,34 +40,8 @@ def analyze_market_inventory(image_bytes):
     base64_image = encode_image_to_base64(image_bytes)
 
     # 2. Prompt Claude
-    prompt_text = """
-    Kamu adalah AI Inventory Cerdas untuk pedagang pasar tradisional Indonesia.
-    Tugasmu adalah melihat gambar stok dagangan dan mengekstrak data logistik.
-
-    Lakukan langkah berpikir ini:
-    1. IDENTIFIKASI: Barang apa ini? (Gunakan nama lokal Indonesia, misal: Bawang Merah, Cabe Rawit).
-    2. HITUNG (COUNTING): 
-       - Hitung jumlah objek yang terlihat dengan teliti.
-       - Jika barangnya satuan (seperti Bawang, Telur, Buah), hitung per butir/pcs.
-       - Jika barangnya dalam wadah (seperti Beras dalam karung), hitung wadahnya.
-       - Jika bertumpuk sangat banyak (seperti cabe sekilo), berikan estimasi "1" dengan satuan "Tumpukan/Kg".
-    3. QUALITY CHECK: Lihat warna, tekstur, dan kulit. Apakah segar? Ada busuk?
-    4. EXPIRY PREDICTION: Estimasi sisa hari layak konsumsi di suhu ruang.
-
-    Output HANYA JSON raw (tanpa markdown ```json):
-    {
-        "items": [
-            {
-                "name": "Nama Barang",
-                "qty": (integer),
-                "unit": "Pcs/Ikat/Karung/Kg",
-                "freshness": "Sangat Segar/Cukup/Layum/Busuk",
-                "expiry_days": (integer sisa hari),
-                "visual_reasoning": "Penjelasan singkat kenapa dinilai segitu"
-            }
-        ]
-    }
-    """
+    # 2. Prompt Claude
+    prompt_text = get_inventory_analysis_prompt()
 
     try:
         # 3. Panggil API Colossal
@@ -126,40 +103,23 @@ def generate_menu_recommendation(ingredients_list):
     ingredients_text = ", ".join(ingredients_list)
     
     # Prompt Menu
-    prompt = f"""
-    Saya punya stok bahan berikut di gudang: {ingredients_text}.
-    
-    Buatkan 1 Rekomendasi Menu Makan Siang Bergizi Gratis (MBG) untuk anak sekolah.
-    Sertakan juga step by step langkah memasaknya
-    Syarat: Murah, Bergizi, Praktis, Lokal.
-    
-    Output JSON:
-    {{
-        "menu_name": "Nama Masakan",
-        "description": "Deskripsi singkat menggugah selera dan langkah memasaknya",
-        "nutrition": {{
-            "calories": "Estimasi Kalori (misal: 500 kcal)",
-            "protein": "Estimasi Protein (misal: 20g)"
-        }},
-        "reason": "Kenapa menu ini cocok dengan bahan yg ada",
-        "ingredients_used": ["Bahan A", "Bahan B"]
-    }}
-    """
+    prompt = get_menu_recommendation_prompt(ingredients_text)
     
     try:
         response = kolosal_client.chat.completions.create(
             model="Claude Sonnet 4.5",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=600
+            max_tokens=1500
         )
         
         content = response.choices[0].message.content
+        print(f"🤖 Raw AI Response: {content}") # Debug print
         cleaned_content = content.replace("```json", "").replace("```", "").strip()
         return json.loads(cleaned_content)
         
     except Exception as e:
         print(f"❌ Error Menu AI: {e}")
-        return {"error": "Gagal membuat menu"}
+        return {"error": f"Gagal membuat menu: {str(e)}"}
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     """
@@ -272,28 +232,7 @@ def analyze_cooked_meal(image_bytes):
     print("🍱 Menganalisis Makanan Jadi...")
     base64_image = encode_image_to_base64(image_bytes)
     
-    prompt_text = """
-    Kamu adalah Ahli Keamanan Pangan & Gizi.
-    Analisis foto makanan matang (Lunch Box/Piring) ini.
-    
-    Tugas:
-    1. Deteksi menu apa ini.
-    2. SAFETY CHECK: Apakah terlihat basi? (Lendir, warna aneh, jamur).
-    3. NUTRITION: Estimasi kalori & nutrisi makro sepiring ini.
-    
-    Output JSON:
-    {
-        "menu_name": "...",
-        "is_safe": true/false,
-        "spoilage_signs": ["...", "..."] (jika ada),
-        "nutrition_estimate": {
-            "calories": "...",
-            "protein": "...",
-            "carbs": "..."
-        },
-        "visual_quality": "Sangat Menggugah Selera / Mencurigakan"
-    }
-    """
+    prompt_text = get_cooked_meal_analysis_prompt()
     
     try:
         response = kolosal_client.chat.completions.create(
@@ -321,20 +260,7 @@ def calculate_meal_expiry(menu_name: str) -> dict:
     """
     print(f"🕒 Analisis Safety Food untuk: {menu_name}")
     
-    prompt = f"""
-    Kamu adalah Ahli Keamanan Pangan & Higiene Sanitasi.
-    
-    Tugas: Analisis keamanan pangan untuk menu masakan matang: "{menu_name}".
-    Berikan estimasi umur simpan (Shelf Life) dalam DUA kondisi dan tips agar awet.
-    
-    Output HANYA JSON raw (tanpa markdown):
-    {{
-        "room_temp_hours": (integer, estimasi tahan berapa jam di suhu ruang/kelas),
-        "fridge_hours": (integer, estimasi tahan berapa jam jika masuk kulkas/chiller),
-        "risk_factor": "Rendah/Sedang/Tinggi (Misal: Tinggi karena bersantan)",
-        "storage_tips": "Saran singkat, padat, teknis (Misal: 'Jangan tutup wadah saat panas', 'Pisahkan kuah dan isi')"
-    }}
-    """
+    prompt = get_meal_expiry_prompt(menu_name)
     
     try:
         response = kolosal_client.chat.completions.create(
@@ -358,7 +284,8 @@ def calculate_meal_expiry(menu_name: str) -> dict:
             "room_temp_hours": 4,
             "fridge_hours": 12,
             "risk_factor": "Unknown",
-            "storage_tips": "Segera konsumsi. Simpan di tempat sejuk dan tertutup."
+            "storage_tips": "Segera konsumsi. Simpan di tempat sejuk dan tertutup.",
+            "nutrition": {"calories": "N/A", "protein": "N/A", "carbs": "N/A", "fats": "N/A"}
         }
 
 def check_expiry_and_notify():
@@ -428,12 +355,107 @@ def check_expiry_and_notify():
     
     menu_name = rescue_menu.get("menu_name", "Tumis Campur")
     
+    # Format pesan WhatsApp yang rapi
+    ingredients_str = "\n".join([f"- {i}" for i in rescue_menu.get("ingredients_needed", [])])
+    steps_str = "\n".join([f"{idx+1}. {step}" for idx, step in enumerate(rescue_menu.get("cooking_steps", []))])
+    
+    nut = rescue_menu.get("nutrition", {})
+    nutrition_str = f"Kalori: {nut.get('calories', '-')}, Protein: {nut.get('protein', '-')}"
+    
+    message_body = f"""🚨 PERHATIAN: {', '.join(all_expiring_names)} di gudang pedagang hampir busuk!
+    
+REKOMENDASI AI: Masak '{menu_name}' hari ini!
+
+🛒 Bahan:
+{ingredients_str}
+
+👨‍🍳 Cara Masak:
+{steps_str}
+
+📊 Nutrisi: {nutrition_str}
+({rescue_menu.get('reason')})"""
+
     msg_sppg = {
         "to": "Admin SPPG",
         "role": "SPPG (Kitchen)",
         "type": "URGENT + RECIPE",
-        "message": f"🚨 PERHATIAN: {', '.join(all_expiring_names)} di gudang pedagang hampir busuk! REKOMENDASI AI: Masak '{menu_name}' hari ini untuk menyelamatkan stok tersebut. ({rescue_menu.get('reason')})"
+        "message": message_body
     }
     notifications.append(msg_sppg)
     
     return {"status": "success", "data": notifications}
+
+def cook_meal(menu_name: str, qty_produced: int, ingredients_ids: list):
+    """
+    Catat produksi masakan:
+    1. Kurangi stok bahan baku (deduct stock).
+    2. Estimasi nutrisi menu tersebut pakai AI.
+    """
+    print(f"🍳 Memasak {menu_name} ({qty_produced} porsi)...")
+    
+    # 1. Kurangi Stok (Simulasi: Hapus item dari DB)
+    # Idealnya kurangi qty, tapi untuk hackathon kita hapus row biar visual
+    if ingredients_ids:
+        try:
+            supabase.table("supplies").delete().in_("id", ingredients_ids).execute()
+            print(f"✅ Bahan baku {ingredients_ids} telah digunakan.")
+        except Exception as e:
+            print(f"❌ Gagal update stok: {e}")
+            return {"error": "Gagal update stok"}
+            
+    # 2. Estimasi Nutrisi & Safety pakai AI (Reuse calculate_meal_expiry)
+    # Ini lebih efisien karena satu kali panggil dapet expiry + nutrition
+    analysis_result = calculate_meal_expiry(menu_name)
+    
+    # Ambil data nutrisi dari hasil analisis
+    nutrition_data = analysis_result.get("nutrition", {"calories": "N/A", "protein": "N/A"})
+
+    # 3. Simpan ke meal_productions
+    hours_room = analysis_result.get("room_temp_hours", 4)
+    hours_fridge = analysis_result.get("fridge_hours", 12)
+    tips_raw = analysis_result.get("storage_tips", "Simpan dengan baik.")
+    formatted_tips = f"{tips_raw} (Tahan {hours_fridge} jam jika masuk kulkas)"
+    
+    data_production = {
+        "menu_name": menu_name,
+        "qty_produced": qty_produced,
+        "expiry_datetime": (datetime.now() + timedelta(hours=hours_room)).isoformat(),
+        "status": "fresh",
+        "storage_tips": formatted_tips
+    }
+    
+    try:
+        supabase.table("meal_productions").insert(data_production).execute()
+    except Exception as e:
+        print(f"⚠️ Gagal simpan log produksi: {e}")
+
+    return {
+        "status": "success",
+        "message": f"Berhasil memproduksi {qty_produced} porsi {menu_name}",
+        "nutrition_estimate": nutrition_data,
+        "safety_analysis": analysis_result
+    }
+
+# --- DATA SPPG (HARDCODED NETWORK) ---
+SPPG_LOCATIONS = [
+    {"id": 1, "name": "SPPG Jakarta Pusat (Monas)", "address": "Jl. Medan Merdeka Barat, Gambir", "lat": -6.175392, "long": 106.827153, "phone": "0812-3456-7890"},
+    {"id": 2, "name": "SPPG Jakarta Selatan (Blok M)", "address": "Jl. Melawai Raya, Kebayoran Baru", "lat": -6.244223, "long": 106.801782, "phone": "0812-9876-5432"},
+    {"id": 3, "name": "SPPG Jakarta Barat (Grogol)", "address": "Jl. Kyai Tapa, Grogol Petamburan", "lat": -6.167570, "long": 106.790960, "phone": "0812-1122-3344"},
+    {"id": 4, "name": "SPPG Jakarta Timur (Jatinegara)", "address": "Jl. Matraman Raya, Jatinegara", "lat": -6.215116, "long": 106.870434, "phone": "0812-5566-7788"},
+    {"id": 5, "name": "SPPG Jakarta Utara (Kelapa Gading)", "address": "Jl. Boulevard Raya, Kelapa Gading", "lat": -6.162331, "long": 106.900220, "phone": "0812-9988-7766"}
+]
+
+def search_nearest_sppg(user_lat: float, user_long: float):
+    """
+    Cari SPPG terdekat dari lokasi user (Vendor).
+    """
+    results = []
+    for sppg in SPPG_LOCATIONS:
+        dist = haversine_distance(user_lat, user_long, sppg['lat'], sppg['long'])
+        sppg_copy = sppg.copy()
+        sppg_copy['distance_km'] = round(dist, 2)
+        results.append(sppg_copy)
+    
+    # Urutkan dari yang terdekat
+    results.sort(key=lambda x: x['distance_km'])
+    return results
