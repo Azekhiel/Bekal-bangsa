@@ -66,7 +66,7 @@ The platform focuses on solving three core issues that threaten the stability an
 -   **Frontend:** **Streamlit** (Rapid prototyping for Data/AI apps).
 -   **Database:** **Supabase** (PostgreSQL) for relational data and Realtime subscriptions.
 -   **AI Models:**
-    -   **Claude 3.5 Sonnet (via Kolosal):** For Vision (Ingredient Analysis) and Reasoning (Menu Recommendation, Nutrition Estimation).
+    -   **Claude 4.5 Sonnet (via Kolosal):** For Vision (Ingredient Analysis) and Reasoning (Menu Recommendation, Nutrition Estimation).
 -   **IoT:** Simulated Temperature/Humidity sensors for Smart Storage.
 
 ---
@@ -176,7 +176,7 @@ Bekal-bangsa/
 1.  **Capture:** User takes a photo in `1_upload.py` (Streamlit).
 2.  **Upload:** Image is sent to `POST /api/upload` -> Saved to Supabase Storage -> Returns URL.
 3.  **Analyze:** Image bytes sent to `POST /api/analyze`.
-    -   **Backend:** `services.analyze_market_inventory` calls **Claude 3.5 Sonnet**.
+    -   **Backend:** `services.analyze_market_inventory` calls **Claude 4.5 Sonnet**.
     -   **AI:** Identifies "5kg Spinach, Fresh".
     -   **Response:** JSON data returned to Frontend.
 4.  **Review:** User verifies data in Streamlit form, adds GPS location.
@@ -190,7 +190,7 @@ Bekal-bangsa/
 
 ### `analyze_market_inventory` (in `backend/services.py`)
 
-This function is the "Brain" of the intake process. It uses a **Single-Shot Prompting** strategy with Claude 3.5 Sonnet to perform three tasks simultaneously:
+This function is the "Brain" of the intake process. It uses a **Single-Shot Prompting** strategy with Claude 4.5 Sonnet to perform three tasks simultaneously:
 
 1.  **Object Detection & Counting:** It visually identifies items (e.g., "Tomatoes") and estimates quantity (e.g., "3 kg" or "10 pcs").
 2.  **Quality Assessment:** It analyzes visual cues (color, texture) to determine freshness (e.g., "Fresh", "Wilting", "Rotten").
