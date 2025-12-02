@@ -63,37 +63,31 @@ The platform focuses on solving three core issues that threaten the stability an
 
 ### 🛠️ Technology Stack
 -   **Backend:** Python **FastAPI** (High performance, async support).
--   **Frontend:** **Streamlit** (Rapid prototyping for Data/AI apps).
+-   **Frontend (Primary):** **Next.js 15** with TypeScript (Modern React framework, production-ready).
+-   **Frontend (Legacy):** **Streamlit** (Rapid prototyping, deprecated in favor of Next.js).
 -   **Database:** **Supabase** (PostgreSQL) for relational data and Realtime subscriptions.
 -   **AI Models:**
     -   **Claude 4.5 Sonnet (via Kolosal):** For Vision (Ingredient Analysis) and Reasoning (Menu Recommendation, Nutrition Estimation).
 -   **IoT:** Simulated Temperature/Humidity sensors for Smart Storage.
+-   **UI Components:** shadcn/ui, Tailwind CSS, Recharts.
 
 ---
 
 ## 2. Installation & Run Tutorial
 
 ### Prerequisites
--   Python 3.9+
--   Supabase Account & Credentials
+-   **Node.js 18+** (for Next.js frontend)
+-   **Python 3.9+** (for FastAPI backend)
+-   **Supabase Account** & Credentials
 
-### Step-by-Step Guide
+---
 
-#### 1. Clone & Setup Environment
+### 🚀 Quick Start (Recommended: Next.js Frontend)
+
+#### 1. Clone & Setup
 ```bash
 git clone <repository_url>
 cd Bekal-bangsa
-
-# Create Virtual Environment
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Mac/Linux
-source venv/bin/activate
-
-# Install Dependencies
-pip install -r backend/requirements.txt
-pip install -r frontend_streamlit/requirements.txt
 ```
 
 #### 2. Configure Environment Variables
@@ -102,23 +96,67 @@ Create a `.env` file in the `backend/` folder:
 SUPABASE_URL="your_supabase_url"
 SUPABASE_KEY="your_supabase_anon_key"
 KOLOSAL_API_KEY="your_kolosal_api_key"
+KOLOSAL_BASE_URL="https://api.kolosal.com/v1"
 ```
 
 #### 3. Run the Backend (FastAPI)
 ```bash
 cd backend
+
+# Create Virtual Environment (first time only)
+python -m venv venv
+
+# Activate Virtual Environment
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+
+# Install Dependencies
+pip install -r requirements.txt
+
+# Run Server
 uvicorn main:app --reload
-# Server running at http://127.0.0.1:8000
+# ✅ Backend running at http://127.0.0.1:8000
 ```
 
-#### 4. Run the IoT Simulator (Optional)
-To generate dummy sensor data:
+#### 4. Run the Frontend (Next.js) - **RECOMMENDED**
+Open a **new terminal**:
 ```bash
-python backend/iot_simulator.py
+cd frontend_next
+
+# Install Dependencies (first time only)
+npm install
+
+# Run Development Server
+npm run dev
+# ✅ Frontend running at http://localhost:3000
 ```
 
-#### 5. Run the Frontend (Streamlit)
-Open a new terminal:
+**Access the app:** Open your browser to `http://localhost:3000`
+
+#### 5. Run IoT Simulator (Optional)
+Open a **new terminal**:
+```bash
+cd backend
+python iot_simulator.py
+# Simulates temperature/humidity data every 10 seconds
+```
+
+---
+
+###📦 Alternative: Streamlit Frontend (Legacy)
+
+> **Note:** Streamlit version is deprecated. Use Next.js for latest features and better UX.
+
+#### Prerequisites
+```bash
+cd Bekal-bangsa
+# Activate venv (see step 3 above)
+pip install -r frontend_streamlit/requirements.txt
+```
+
+#### Run Streamlit
 ```bash
 streamlit run frontend_streamlit/Home.py
 # App running at http://localhost:8501
@@ -130,27 +168,59 @@ streamlit run frontend_streamlit/Home.py
 
 ```text
 Bekal-bangsa/
-├── backend/
-│   ├── main.py             # Entry point. Defines API endpoints and connects services.
-│   ├── services/           # Business logic modules (Refactored):
-│   │   ├── vision.py       # AI Image Analysis (Claude Vision).
-│   │   ├── kitchen.py      # Cooking, Menu Recs, & Nutrition Logic.
-│   │   ├── logistics.py    # Geospatial Search & SPPG Locations.
-│   │   ├── inventory.py    # Expiry Checks & WhatsApp Notifications.
-│   │   ├── storage.py      # File Uploads to Supabase.
-│   │   └── clients.py      # Shared Client Initialization.
-│   ├── models.py           # Pydantic models for Data Validation (Request/Response).
-│   ├── prompts.py          # Centralized AI Prompts for Claude Sonnet.
-│   ├── iot_simulator.py    # Script to simulate IoT sensor data sending to API.
-│   └── database.py         # Supabase client initialization.
-├── frontend_streamlit/
-│   ├── Home.py             # Main Landing Page.
+├── backend/                     # FastAPI Backend
+│   ├── main.py                 # Entry point. API endpoints.
+│   ├── services/               # Business logic modules:
+│   │   ├── vision.py          # AI Image Analysis (Claude Vision).
+│   │   ├── kitchen.py         # Cooking, Menu Recs, Nutrition.
+│   │   ├── logistics.py       # Geospatial Search & SPPG Matching.
+│   │   ├── inventory.py       # Expiry Checks & Notifications.
+│   │   ├── storage.py         # File Uploads to Supabase.
+│   │   └── clients.py         # Shared Client Initialization.
+│   ├── models.py              # Pydantic models (Request/Response).
+│   ├── prompts.py             # AI Prompts for Claude Sonnet.
+│   ├── iot_simulator.py       # IoT sensor data simulator.
+│   ├── database.py            # Supabase client initialization.
+│   └── requirements.txt       # Python dependencies.
+│
+├── frontend_next/              # Next.js Frontend (PRIMARY)
+│   ├── app/                   # App Router (Next.js 15)
+│   │   ├── layout.tsx         # Root layout
+│   │   ├── page.tsx           # Home page (Role Selector)
+│   │   └── globals.css        # Global styles
+│   ├── components/            # React Components
+│   │   ├── kitchen/           # SPPG Kitchen UI
+│   │   │   ├── kitchen-dashboard.tsx
+│   │   │   ├── menu-recommendation.tsx
+│   │   │   ├── scan-food-qc.tsx
+│   │   │   ├── supplier-search-order.tsx
+│   │   │   └── ...
+│   │   ├── vendor/            # UMKM Vendor UI
+│   │   │   ├── vendor-dashboard.tsx
+│   │   │   ├── inventory-upload.tsx
+│   │   │   ├── sppg-search.tsx
+│   │   │   └── ...
+│   │   ├── common/            # Shared components
+│   │   ├── ui/                # shadcn/ui components (73 files)
+│   │   └── shared/            # Utilities (error boundary, etc.)
+│   ├── lib/                   # Helper functions
+│   ├── hooks/                 # Custom React hooks
+│   ├── next.config.mjs        # Next.js config (API proxy)
+│   ├── tailwind.config.ts     # Tailwind CSS config
+│   ├── package.json           # Node dependencies
+│   └── tsconfig.json          # TypeScript config
+│
+├── frontend_streamlit/         # Streamlit Frontend (LEGACY)
+│   ├── Home.py                # Landing page
 │   └── pages/
-│       ├── 1_upload.py     # Vendor: Upload photo, AI analysis, Search SPPG.
-│       ├── 2_dashboard_sppg.py # Admin: View stock, IoT logs, Menu Recs.
-│       ├── 3_pesanan_masuk.py # UMKM: View & Manage Incoming Orders.
-│       └── 4_dapur_produksi.py # Kitchen: Cook meals, Deduct stock, Nutrition Info.
-└── README.md               # This documentation.
+│       ├── 1_upload.py        # Vendor: Upload & AI analysis
+│       ├── 2_dashboard_sppg.py # Admin: Dashboard
+│       ├── 3_pesanan_masuk.py  # Orders
+│       └── 4_dapur_produksi.py # Production
+│
+├── BACKEND_ARCHITECTURE.md     # Backend technical docs
+├── FRONTEND_ARCHITECTURE.md    # Frontend technical docs (Next.js)
+└── README.md                   # This file
 ```
 
 ---
@@ -176,9 +246,12 @@ Bekal-bangsa/
 -   **[✅ Functional] Expiry Alerts:** WhatsApp-style notifications for expiring batches.
 
 ---
-5.  **Save:** User clicks "Simpan". Data sent to `POST /api/supplies`.
-    -   **Database:** Saved to `supplies` table in Supabase.
-6.  **Visualize:** Data immediately appears on `2_dashboard_sppg.py` for the Kitchen Admin to see.
+
+## 5. Documentation
+
+For in-depth technical guides:
+- **Backend:** See [`BACKEND_ARCHITECTURE.md`](./BACKEND_ARCHITECTURE.md)
+- **Frontend:** See [`FRONTEND_ARCHITECTURE.md`](./FRONTEND_ARCHITECTURE.md)
 
 ---
 
