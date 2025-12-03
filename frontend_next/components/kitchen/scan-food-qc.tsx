@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,15 +33,20 @@ export default function ScanFoodQC() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  // Fix: Attach stream to video element when it becomes available
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream
+    }
+  }, [stream])
+
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
       })
       setStream(mediaStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
+      // videoRef.current is null here because the video element hasn't rendered yet
     } catch (error) {
       console.error("Error accessing camera:", error)
       alert("Tidak dapat mengakses kamera")
@@ -52,7 +57,7 @@ export default function ScanFoodQC() {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop())
       setStream(null)
-      setPhoto(null)
+      // Do not clear photo here, as it's called after capture
     }
   }
 
@@ -87,12 +92,15 @@ export default function ScanFoodQC() {
     setLoading(true)
     try {
       // Convert base64 to blob
-      const res = await fetch(photo)
-      const blob = await res.blob()
+      // Convert base64 to blob
+      const fetchRes = await fetch(photo)
+      const blob = await fetchRes.blob()
       const file = new File([blob], "scan.jpg", { type: "image/jpeg" })
 
       const formData = new FormData()
       formData.append("file", file)
+
+      console.log("Sending file to backend...", file.size, file.type) // Debug log
 
       const response = await fetch("/api/kitchen/scan-food", {
         method: "POST",

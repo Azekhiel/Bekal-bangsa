@@ -79,63 +79,131 @@ export default function InventoryList({ role }: InventoryListProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-                <Table>
-                    <TableHeader className="bg-gray-50/50">
-                        <TableRow>
-                            <TableHead className="w-[200px]">Nama Barang</TableHead>
-                            <TableHead>Jumlah</TableHead>
-                            <TableHead>Satuan</TableHead>
-                            <TableHead>Sisa Hari</TableHead>
-                            <TableHead className="text-right">Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {items.length === 0 ? (
+                {/* Desktop View: Table */}
+                <div className="hidden md:block">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    Belum ada data inventaris
-                                </TableCell>
+                                <TableHead className="w-[200px]">Nama Barang</TableHead>
+                                <TableHead>Jumlah</TableHead>
+                                <TableHead>Satuan</TableHead>
+                                <TableHead>Sisa Hari</TableHead>
+                                <TableHead className="text-right">Status</TableHead>
                             </TableRow>
-                        ) : (
-                            items.map((item) => (
-                                <TableRow key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <TableCell className="font-medium text-foreground">
-                                        {item.item_name}
-                                        {role === "kitchen" && item.owner_name && (
-                                            <span className="block text-xs text-muted-foreground font-normal">
-                                                Dari: {item.owner_name}
-                                            </span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>{item.quantity}</TableCell>
-                                    <TableCell className="text-muted-foreground">{item.unit}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`font-medium ${item.expiry_days <= 2 ? "text-red-600" : "text-foreground"}`}>
-                                                {item.expiry_days} Hari
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge
-                                            variant={
-                                                item.expiry_days <= 2 ? "destructive" :
-                                                    item.expiry_days <= 5 ? "secondary" : "outline"
-                                            }
-                                            className={
-                                                item.expiry_days > 5 ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200" : ""
-                                            }
-                                        >
-                                            {item.expiry_days <= 2 && <AlertTriangle className="w-3 h-3 mr-1" />}
-                                            {item.expiry_days > 5 && <CheckCircle className="w-3 h-3 mr-1" />}
-                                            {getStatusLabel(item.expiry_days)}
-                                        </Badge>
+                        </TableHeader>
+                        <TableBody>
+                            {items.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                        Belum ada data inventaris
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : (
+                                items.map((item) => (
+                                    <TableRow key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <TableCell className="font-medium text-foreground">
+                                            {item.item_name}
+                                            {role === "kitchen" && item.owner_name && (
+                                                <span className="block text-xs text-muted-foreground font-normal">
+                                                    Dari: {item.owner_name}
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>{item.quantity}</TableCell>
+                                        <TableCell className="text-muted-foreground">{item.unit}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span
+                                                    className={`font-medium ${item.expiry_days <= 2 ? "text-red-600" : "text-foreground"}`}
+                                                >
+                                                    {item.expiry_days} Hari
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Badge
+                                                variant={
+                                                    item.expiry_days <= 2
+                                                        ? "destructive"
+                                                        : item.expiry_days <= 5
+                                                            ? "secondary"
+                                                            : "outline"
+                                                }
+                                                className={
+                                                    item.expiry_days > 5
+                                                        ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+                                                        : ""
+                                                }
+                                            >
+                                                {item.expiry_days <= 2 && <AlertTriangle className="w-3 h-3 mr-1" />}
+                                                {item.expiry_days > 5 && <CheckCircle className="w-3 h-3 mr-1" />}
+                                                {getStatusLabel(item.expiry_days)}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Mobile View: Cards */}
+                <div className="md:hidden p-4 space-y-4 bg-gray-50/30">
+                    {items.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground bg-white rounded-lg border border-dashed">
+                            Belum ada data inventaris
+                        </div>
+                    ) : (
+                        items.map((item) => (
+                            <div
+                                key={item.id}
+                                className="bg-white p-4 rounded-lg border border-border shadow-sm space-y-3"
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-semibold text-foreground">{item.item_name}</h3>
+                                        {role === "kitchen" && item.owner_name && (
+                                            <p className="text-xs text-muted-foreground">Dari: {item.owner_name}</p>
+                                        )}
+                                    </div>
+                                    <Badge
+                                        variant={
+                                            item.expiry_days <= 2
+                                                ? "destructive"
+                                                : item.expiry_days <= 5
+                                                    ? "secondary"
+                                                    : "outline"
+                                        }
+                                        className={
+                                            item.expiry_days > 5
+                                                ? "bg-green-100 text-green-700 border-green-200"
+                                                : ""
+                                        }
+                                    >
+                                        {getStatusLabel(item.expiry_days)}
+                                    </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className="bg-gray-50 p-2 rounded">
+                                        <p className="text-xs text-muted-foreground">Jumlah</p>
+                                        <p className="font-medium">
+                                            {item.quantity} {item.unit}
+                                        </p>
+                                    </div>
+                                    <div className="bg-gray-50 p-2 rounded">
+                                        <p className="text-xs text-muted-foreground">Sisa Waktu</p>
+                                        <p
+                                            className={`font-medium ${item.expiry_days <= 2 ? "text-red-600" : "text-foreground"}`}
+                                        >
+                                            {item.expiry_days} Hari
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </CardContent>
         </Card>
     )

@@ -35,13 +35,16 @@ export default function IoTMonitoring() {
         const data = await response.json()
         console.log("[v0] IoT logs:", data)
 
-        if (data.logs) {
-          const formattedLogs = data.logs.map((log: any) => ({
+        // Backend returns a list directly: [{...}, {...}]
+        if (Array.isArray(data)) {
+          const formattedLogs = data.map((log: any) => ({
             timestamp: new Date(log.created_at).toLocaleTimeString(),
             temperature: log.temperature,
             humidity: log.humidity,
           }))
-          setLogs(formattedLogs.slice(-20)) // Keep last 20 readings
+          // Reverse to show oldest to newest on chart if needed, or just slice
+          // Usually charts want left-to-right time, so if API returns desc, we might need to reverse
+          setLogs(formattedLogs.reverse().slice(-20))
         }
       } catch (error) {
         console.error("Error fetching IoT logs:", error)
@@ -142,7 +145,7 @@ export default function IoTMonitoring() {
                   <Area
                     type="monotone"
                     dataKey="temperature"
-                    stroke="hsl(var(--chart-1))"
+                    stroke="var(--chart-1)"
                     fillOpacity={1}
                     fill="url(#colorTemp)"
                   />
@@ -167,7 +170,7 @@ export default function IoTMonitoring() {
                   <Line
                     type="monotone"
                     dataKey="humidity"
-                    stroke="hsl(var(--chart-2))"
+                    stroke="var(--chart-2)"
                     strokeWidth={2}
                     name="Kelembaban (%)"
                   />
