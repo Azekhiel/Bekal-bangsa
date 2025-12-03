@@ -13,3 +13,4 @@ yarn-error.log
 .env
 .pytest_cache/
 bundler.py
+full_context.txt

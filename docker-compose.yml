@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # --- BACKEND SERVICE ---
+  backend:
+    build: ./backend
+    container_name: bekal_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    restart: always
+    volumes:
+      # (Opsional) Mapping supaya kalau edit kode lokal, container ikut berubah tanpa rebuild
+      # Hapus baris ini saat deploy production
+      - ./backend:/app 
+
+  # --- FRONTEND SERVICE ---
+  frontend:
+    build: ./frontend_next
+    container_name: bekal_frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend_next/.env.local
+    environment:
+      # Pastikan Next.js tau backend ada di mana
+      # Untuk diakses dari Browser user, localhost tetap localhost
+      - NEXT_PUBLIC_API_BASE=http://localhost:8000/api
+    depends_on:
+      - backend
+    restart: always
