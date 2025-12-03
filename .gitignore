@@ -12,3 +12,4 @@ yarn-error.log
 */.env/
 .env
 .pytest_cache/
+bundler.py
