@@ -607,16 +607,13 @@ async def google_login(data: GoogleLoginRequest):
 @app.post("/api/kitchen/chat")
 async def chat_chef_endpoint(request: Request, chat_data: ChatRequest, current_user: dict = Depends(get_current_user)):
     """
-    Endpoint Chatbot AI Chef dengan konteks stok.
+    Endpoint Chatbot AI Chef dengan konteks stok + logistik vendor.
     """
     if current_user["role"] != "kitchen":
         raise HTTPException(status_code=403, detail="Akses ditolak")
         
     try:
-        # Panggil service
-        # Import fungsi chat_with_chef dulu di bagian atas file main.py!
-        # from services.kitchen import chat_with_chef
-        
+        # Panggil fungsi chat_with_chef yang baru
         result = await run_in_threadpool(chat_with_chef, chat_data.message, current_user["user_id"])
         return result
     except Exception as e:

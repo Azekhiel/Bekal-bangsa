@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from .clients import kolosal_client, supabase
+from .logistics import haversine_distance
 from prompts import (
     get_menu_recommendation_prompt,
     get_meal_expiry_prompt
@@ -144,40 +145,81 @@ def mark_meal_as_served(meal_id: int):
 
 def chat_with_chef(user_message: str, user_id: int):
     """
-    Chatbot Koki Pintar.
-    Otomatis inject data stok user ke dalam prompt.
+    Chatbot Koki Pintar (Logistik Edition).
+    Konteks:
+    1. Stok Dapur (Barang yang sudah dibeli/completed orders).
+    2. Stok Pasar (Barang vendor + Jarak).
     """
     try:
-        # 1. Ambil Stok User dari DB
-        response = supabase.table("supplies").select("item_name, quantity, unit").eq("user_id", user_id).execute()
-        supplies = response.data
+        # --- LANGKAH 1: AMBIL DATA LOKASI KITCHEN ---
+        user_res = supabase.table("users").select("latitude, longitude").eq("id", user_id).single().execute()
+        kitchen_loc = user_res.data
+        k_lat = kitchen_loc.get('latitude', -6.175392)
+        k_long = kitchen_loc.get('longitude', 106.827153)
+
+        # --- LANGKAH 2: AMBIL 'MY STOCK' (APA YG KITA PUNYA) ---
+        # Asumsi: Barang milik kitchen adalah barang dari orders yang statusnya 'completed'
+        my_stock_res = supabase.table("orders")\
+            .select("qty_ordered, supplies(item_name, unit, quality_status)")\
+            .eq("buyer_id", user_id)\
+            .eq("status", "completed")\
+            .execute()
         
-        # Format stok jadi string biar Claude ngerti
-        stock_list = "\n".join([f"- {s['item_name']} ({s['quantity']} {s['unit']})" for s in supplies])
+        my_stock_list = []
+        if my_stock_res.data:
+            for o in my_stock_res.data:
+                if o.get('supplies'):
+                    item = o['supplies']
+                    my_stock_list.append(f"- {item['item_name']}: {o['qty_ordered']} {item['unit']} (Kualitas: {item['quality_status']})")
         
-        # 2. System Prompt yang Kuat
+        my_stock_text = "\n".join(my_stock_list) if my_stock_list else "- Tidak ada stok (Gudang Kosong)"
+
+        # --- LANGKAH 3: AMBIL 'MARKET STOCK' (APA YG BISA DIBELI) ---
+        # Ambil semua supply dari vendor
+        market_res = supabase.table("supplies").select("*").execute()
+        market_list = []
+        
+        if market_res.data:
+            for item in market_res.data:
+                # Hitung Jarak
+                dist = 0
+                if item.get('latitude') and item.get('longitude'):
+                    dist = haversine_distance(k_lat, k_long, item['latitude'], item['longitude'])
+                
+                # Format: "Bawang Merah (Pak Asep - 2.5km)"
+                market_list.append(f"- {item['item_name']}: Tersedia di {item['owner_name']} (Jarak: {dist:.1f} km)")
+
+        market_text = "\n".join(market_list) if market_list else "- Pasar sedang kosong"
+
+        # --- LANGKAH 4: RAKIT SYSTEM PROMPT ---
         system_prompt = f"""
-        Kamu adalah "Chef Bekal", asisten dapur AI yang ramah, solutif, dan ahli gizi untuk program Makan Bergizi Gratis.
+        Kamu adalah "Chef Bekal", asisten dapur AI yang ahli manajemen logistik.
         
-        DATA STOK GUDANG USER SAAT INI:
-        {stock_list}
+        DATA INVENTARIS DAPUR SAYA (Gunakan ini dulu):
+        {my_stock_text}
+        
+        DATA PASAR & VENDOR TERDEKAT (Gunakan ini jika stok dapur kurang):
+        {market_text}
         
         TUGAS KAMU:
-        1. Jawab pertanyaan user terkait masakan, resep, atau manajemen dapur.
-        2. Jika user minta resep, PRIORITASKAN bahan yang ada di stok mereka.
-        3. Jika bahan KURANG, sebutkan bahan apa yang kurang dan sarankan untuk membelinya di "Menu Cari Supplier" (Fitur app ini).
-        4. Berikan langkah-langkah masak yang jelas dan ringkas.
-        5. Gaya bicara: Ramah, Profesional, dan menyemangati (Bahasa Indonesia).
+        1. Saat user minta resep, PERTAMA-TAMA: List dulu bahan apa saja yang SUDAH ADA di dapur saya beserta kualitasnya.
+        2. KEDUA: Jika ada bahan yang kurang, cari di DATA PASAR.
+           - Jika ada vendor yg jual: Tulis "Bisa beli [Nama Barang] di [Nama Vendor] (Jaraknya [X] km)".
+           - Prioritaskan vendor dengan jarak TERDEKAT.
+           - Jika tidak ada di pasar: Tulis "Barang ini sedang tidak tersedia di vendor mitra".
+        3. KETIGA: Berikan resep masakan lengkapnya.
+        
+        Gaya bahasa: Ramah, profesional, dan sangat membantu secara operasional.
         """
 
-        # 3. Kirim ke Claude
+        # --- LANGKAH 5: KIRIM KE CLAUDE ---
         response = kolosal_client.chat.completions.create(
             model="Claude Sonnet 4.5",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            max_tokens=1000
+            max_tokens=1500
         )
         
         ai_reply = response.choices[0].message.content
@@ -185,4 +227,4 @@ def chat_with_chef(user_message: str, user_id: int):
 
     except Exception as e:
         print(f"Chat Error: {e}")
-        return {"error": "Maaf, Chef sedang sibuk. Coba lagi nanti."}
+        return {"error": "Maaf, Chef sedang mengecek gudang. Coba lagi nanti."}
