@@ -126,3 +126,16 @@ def cook_meal(menu_name: str, qty_produced: int, ingredients_ids: list):
         "nutrition_estimate": nutrition_data,
         "safety_analysis": analysis_result
     }
+
+def mark_meal_as_served(meal_id: int):
+    """
+    Tandai masakan sebagai 'served' (Telah Disajikan).
+    Status ini menghentikan monitoring expiry.
+    """
+    print(f"🍽️ Marking meal {meal_id} as served...")
+    try:
+        response = supabase.table("meal_productions").update({"status": "served"}).eq("id", meal_id).execute()
+        return {"status": "success", "data": response.data}
+    except Exception as e:
+        print(f"❌ Gagal update status served: {e}")
+        return {"error": str(e)}

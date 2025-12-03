@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from services.vision import analyze_market_inventory, analyze_cooked_meal
-from services.kitchen import generate_menu_recommendation, calculate_meal_expiry, cook_meal
+from services.kitchen import generate_menu_recommendation, calculate_meal_expiry, cook_meal, mark_meal_as_served
 from services.logistics import search_suppliers, search_nearest_sppg
 from services.inventory import calculate_expiry_date, check_expiry_and_notify
 from services.storage import upload_image_to_supabase
@@ -226,7 +226,7 @@ async def create_order(request: Request, order: OrderRequest):
 async def get_incoming_orders(request: Request):
     try:
         response = supabase.table("orders").select("*, supplies(*)").order("created_at", desc=True).execute()
-        return response.data
+        return {"orders": response.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -258,7 +258,36 @@ async def cook_meal_endpoint(request: Request, req_data: CookRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/kitchen/meals/{meal_id}/serve")
+@limiter.limit("30/minute")
+async def serve_meal_endpoint(request: Request, meal_id: int):
+    """
+    Tandai masakan sebagai 'Telah Disajikan'.
+    """
+    try:
+        result = mark_meal_as_served(meal_id)
+        
+        if "error" in result:
+             raise HTTPException(status_code=500, detail=result["error"])
+             
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
+@app.get("/api/kitchen/meals")
+@limiter.limit("30/minute")
+async def get_cooked_meals(request: Request):
+    """
+    Ambil riwayat masakan yang sudah diproduksi (untuk monitoring expiry).
+    """
+    try:
+        response = supabase.table("meal_productions").select("*").order("created_at", desc=True).execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- FITUR 11: MEAL SCANNER (VISION QC) ---
 # LIMIT: 5x per menit (Vision API)
 @app.post("/api/kitchen/scan-meal")
