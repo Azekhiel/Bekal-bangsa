@@ -161,6 +161,25 @@ pip install -r frontend_streamlit/requirements.txt
 streamlit run frontend_streamlit/Home.py
 # App running at http://localhost:8501
 ```
+### 📱 Access on Mobile
+
+### 1. Ensure Same WiFi Network
+Make sure your Laptop (running the server) and your Phone are connected to the **same WiFi network**.
+
+### 2. Check Laptop IP Address
+1.  Open Terminal (Command Prompt / PowerShell) on your Laptop.
+2.  Type command: `ipconfig` (Windows) or `ifconfig` (Mac/Linux).
+3.  Find the **IPv4 Address**. Example: `192.168.1.5` or `192.168.100.12`.
+
+### 3. Open in Phone Browser
+1.  Open Chrome / Safari on your Phone.
+2.  Type the following address in the address bar:
+    *   **Frontend:** `http://<YOUR_LAPTOP_IP>:3000`
+        *   Example: `http://192.168.1.5:3000`
+    *   **Backend API:** `http://<YOUR_LAPTOP_IP>:8000/docs`
+
+> **Note:** If it doesn't work, try temporarily disabling the Firewall on your Laptop.
+
 
 ---
 
@@ -267,3 +286,6 @@ This function is the "Brain" of the intake process. It uses a **Single-Shot Prom
 -   The image is encoded in Base64.
 -   Sent to Kolosal API with a strict system prompt: *"You are an expert food quality inspector..."*
 -   The model is forced to output **ONLY JSON** (no markdown), ensuring the backend can parse it directly into Pydantic models without regex hacking.
+
+---
+
