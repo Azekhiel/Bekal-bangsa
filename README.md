@@ -23,37 +23,41 @@ The platform focuses on solving three core issues that threaten the stability an
 
 **A. 🤝 Mitra UMKM Empowerment:**
 - **Digital Cataloging:** 
-    - Function: Helps UMKM create a Digital Catalog (inventory, price, quantity, and freshness with expiry date prediction) for their stock by simply taking photo. 
+    - Function: Helps UMKM create a Digital Catalog (inventory, price, quantity, and freshness with expiry date prediction) for their stock by simply taking photo.
     - Outcome: Local UMKM gain smart cataloging for their stock.
 
 - **UMKM Integration into the MBG supply chain:** 
-    - Function: Shows nearest SPPG Kitchen based on GPS coordinates for UMKM to sell their ingredients. 
+    - Function: Shows nearest SPPG Kitchen based on GPS coordinates for UMKM to sell their ingredients.
     - Outcome: Local UMKM gain immediate, transparent access to the massive government procurement market and digital stock management.
 
 - **Proactive Waste Mitigation (UMKM Warning):** 
-    - Function: Sends a warning using whatsapp notification to the UMKM vendor to sell the nearly expiring ingredients to the nearest SPPG kitchen before it spoils. 
+    - Function: Sends a warning using whatsapp notification to the UMKM vendor to sell the nearly expiring ingredients to the nearest SPPG kitchen before it spoils.
     - Outcome: UMKM vendor can sell the ingredients before it spoils, reducing food waste.
 
 **B. 🧠 Portal SPPG (Admin & Kitchen):** 
 - **Smart & Efficient Logistics:** 
-    - Function: Provides Real-time Geospatial Search to match SPPG demand with the nearest available UMKM supply. 
+    - Function: Provides Real-time Geospatial Search to match SPPG demand with the nearest available UMKM supply.
     - Outcome: Empowers local UMKM and ensures Fresh/Expiring stock is prioritized, optimizing nutritional output.
 
-- **Smart Dashboard & Inventory:** 
-    - Function: Displays available supplies from all vendors in a single dashboard, sorted by freshness and expiry date. 
-    - Outcome: Kitchen staff can track and plan procurement based on existing ingredients.
+- **AI Chef Assistant (Chatbot):**
+    - Function: Interactive AI (Chef Juna) that helps Kitchen Admin plan menus, answer logistics questions, and manage stock using natural language.
+    - Outcome: Reduces administrative burden and provides instant expert guidance.
+
+- **Smart Dashboard & IoT Storage:** 
+    - Function: Displays supplies from vendors and monitors physical storage conditions (Temperature/Humidity) in real-time using ESP32 sensors.
+    - Outcome: Ensures optimal storage conditions and simplifies procurement planning.
 
 - **AI Menu Recommendation:** 
-    - Function: Generates healthy and nutritious recipes based existing fresh ingredients catalog. 
+    - Function: Generates healthy and nutritious recipes based existing fresh ingredients catalog.
     - Outcome: Kitchen staff can plan menus based on existing ingredients, reducing waste and ensuring nutritional value.
 
 - **Proactive Waste Mitigation (SPPG Warning):** 
-    - Function: Sends a warning using whatsapp notification to the SPPG kitchen to create a healthy recommendation menu based on nearly expiring ingredients, ensuring that no ingredients goes to waste. 
+    - Function: Sends a warning using whatsapp notification to the SPPG kitchen to create a healthy recommendation menu based on nearly expiring ingredients, ensuring that no ingredients goes to waste.
     - Outcome: SPPG kitchen can optimize their menu based on existing ingredients before it spoils, signficantly reducing food waste.
 
 **C. 🍽️ End-to-End Food Safety (Core AI Innovation)**
 - **AI Quality Control & Meal Safety:** 
-    - Function: Uses Multimodal AI Vision and IoT sensors to automatically verify the freshness, nutrition, and estimate the absolute expiry date of menus cooked for MBG. 
+    - Function: Uses Multimodal AI Vision and IoT sensors to automatically verify the freshness, nutrition, and estimate the absolute expiry date of menus cooked for MBG.
     - Outcome: Guarantees that only safe and high-quality meals are served to the students, mitigating the risk of toxic and unhealthy food.
 
 

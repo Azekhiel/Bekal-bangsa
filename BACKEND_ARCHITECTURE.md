@@ -132,6 +132,17 @@ We use **Claude 4.5 Sonnet** for everything.
 
 Here is exactly what every function does, so you know what you're calling.
 
+
+#### `chat_with_chef(user_message, user_id)`
+*   **Goal:** "Chef Bekal" - Context-Aware Chatbot.
+*   **Input:** User question and their ID.
+*   **Logic:**
+    1.  Fetches **My Stock** (Completed Orders).
+    2.  Fetches **Market Stock** (All Supplies + Distance).
+    3.  Feeds both into a System Prompt.
+    4.  Claude answers logistics/cooking questions based on ACTUAL data.
+*   **Output:** JSON `{ "reply": "..." }`.
+
 ### 👁️ `services/vision.py`
 
 #### `analyze_market_inventory(image_bytes)`
@@ -234,3 +245,16 @@ Here is exactly what every function does, so you know what you're calling.
 *   **Input:** `UploadFile` object from FastAPI.
 *   **Logic:** Uploads bytes to Supabase Storage bucket `supply-photos` with a timestamped filename.
 *   **Output:** Public URL string (e.g., `https://supabase.../173000_foto.jpg`).
+
+---
+
+## 8. IoT & Real-time Guide
+
+### Endpoints
+*   `POST /api/iot/log`: Accepts `{ temp, humidity, device_id }` from ESP32.
+*   `GET /api/iot/logs`: Fetches latest 50 readings for the dashboard chart.
+
+### Physical Architecture
+1.  **ESP32 Sensor**: Reads DHT11, connects to WiFi, POSTs to DigitalOcean URL.
+2.  **Supabase**: Stores logs in `storage_logs` table.
+3.  **Frontend**: Polling/Realtime fetch for live charts.

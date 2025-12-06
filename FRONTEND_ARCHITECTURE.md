@@ -69,6 +69,7 @@ frontend_next/
 │   │   ├── cooking-production.tsx          # Production tracking
 │   │   ├── iot-monitoring.tsx             # Sensor dashboard
 │   │   ├── kitchen-order-history.tsx      # Transaction history
+│   │   ├── kitchen-chatbot.tsx            # AI Chef Assistant
 │   │   └── kitchen-sidebar.tsx            # Navigation sidebar
 │   │
 │   ├── vendor/                  # UMKM Vendor components
@@ -177,6 +178,7 @@ kitchen-dashboard.tsx (Container)
 | `kitchen-order-history.tsx` | Transaction History | `/api/orders/umkm` |
 | `satellite-map.tsx` | Supplier Logistics Map | Leaflet + Esri Tiles |
 | `notification-bell.tsx` | Centralized Alerts | `/api/notifications/trigger` |
+| `kitchen-chatbot.tsx` | AI Chef Assistant | `/api/kitchen/chat` (Claude) |
 
 ### 🛒 UMKM Vendor
 
@@ -309,11 +311,12 @@ npm run dev
 # App runs at http://localhost:3000
 ```
 
-### 3. Build for Production
+### 3. Build for Production (DigitalOcean/Vercel)
 ```bash
 npm run build
 npm start
 ```
+*Note: This project is deployed on DigitalOcean App Platform. The build command runs automatically.*
 
 ### 4. Code Structure Guidelines
 
