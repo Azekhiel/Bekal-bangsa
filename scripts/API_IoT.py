@@ -7,8 +7,8 @@ import time
 # Ganti dengan Port Arduino kamu (Cek di Arduino IDE > Tools > Port)
 # Di Windows biasanya COM3, COM4, dst. Di Mac/Linux /dev/tty...
 SERIAL_PORT = 'COM3' 
-BAUD_RATE = 9600
-API_URL = 'https://contoh-api-kamu.com/endpoint' # Ganti dengan link API tujuan
+BAUD_RATE = 115200
+API_URL = 'https://bekal-bangsa-al8lc.ondigitalocean.app/api/iot/log' # Ganti dengan link API tujuan
 
 # --- SETUP SERIAL ---
 try:

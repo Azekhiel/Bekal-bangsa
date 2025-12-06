@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { AlertTriangle, Bell, X, ChefHat, Flame, ArrowRight, CheckCheck } from "lucide-react"
+import { AlertTriangle, Bell, X, Flame, ArrowRight, CheckCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -13,7 +12,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 
-interface ExpiryAlert {
+export interface ExpiryAlert {
     id: number
     item_name: string
     days_left: number
@@ -22,7 +21,7 @@ interface ExpiryAlert {
     urgency: "critical" | "warning" | "info"
 }
 
-interface RescueMenu {
+export interface RescueMenu {
     menu_name: string
     description: string
     ingredients_needed: string[]
@@ -34,58 +33,21 @@ interface RescueMenu {
     reason: string
 }
 
-export default function NotificationList({ onCountChange }: { onCountChange?: (count: number) => void }) {
-    const [alerts, setAlerts] = useState<ExpiryAlert[]>([])
-    const [rescueMenu, setRescueMenu] = useState<RescueMenu | null>(null)
-    const [loading, setLoading] = useState(true)
+interface NotificationListProps {
+    alerts: ExpiryAlert[]
+    rescueMenu: RescueMenu | null
+    loading: boolean
+    onDismiss: (id: number) => void
+    onMarkAllRead: () => void
+}
 
-    useEffect(() => {
-        const fetchAlerts = async () => {
-            try {
-                const response = await fetch("/api/notifications/trigger", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                })
-                const data = await response.json()
-
-                if (data.expiring_items) {
-                    const formattedAlerts = data.expiring_items.map((item: any, idx: number) => ({
-                        id: idx,
-                        item_name: item.item_name || item.name,
-                        days_left: item.expiry_days,
-                        quantity: item.quantity || item.qty,
-                        unit: item.unit,
-                        urgency: item.expiry_days <= 1 ? "critical" : item.expiry_days <= 3 ? "warning" : "info",
-                    }))
-                    setAlerts(formattedAlerts)
-                    if (onCountChange) onCountChange(formattedAlerts.length)
-                }
-
-                if (data.rescue_menu) {
-                    setRescueMenu(data.rescue_menu)
-                }
-            } catch (error) {
-                console.error("Error fetching alerts:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchAlerts()
-        const interval = setInterval(fetchAlerts, 30000)
-        return () => clearInterval(interval)
-    }, [onCountChange])
-
-    const dismissAlert = (id: number) => {
-        const newAlerts = alerts.filter((a) => a.id !== id)
-        setAlerts(newAlerts)
-        if (onCountChange) onCountChange(newAlerts.length)
-    }
-
-    const markAllRead = () => {
-        setAlerts([])
-        if (onCountChange) onCountChange(0)
-    }
+export default function NotificationList({
+    alerts,
+    rescueMenu,
+    loading,
+    onDismiss,
+    onMarkAllRead
+}: NotificationListProps) {
 
     const getAlertColor = (urgency: string) => {
         switch (urgency) {
@@ -118,7 +80,7 @@ export default function NotificationList({ onCountChange }: { onCountChange?: (c
             <div className="flex items-center justify-between p-4 border-b">
                 <h4 className="font-semibold">Notifikasi</h4>
                 {alerts.length > 0 && (
-                    <Button variant="ghost" size="sm" onClick={markAllRead} className="h-auto p-0 text-xs text-muted-foreground hover:text-primary">
+                    <Button variant="ghost" size="sm" onClick={onMarkAllRead} className="h-auto p-0 text-xs text-muted-foreground hover:text-primary">
                         <CheckCheck className="w-3 h-3 mr-1" />
                         Tandai sudah dibaca
                     </Button>
@@ -187,7 +149,7 @@ export default function NotificationList({ onCountChange }: { onCountChange?: (c
                         >
                             <div className="flex gap-4">
                                 <div className={`p-2 rounded-full ${alert.urgency === 'critical' ? 'bg-red-200 text-red-700' :
-                                        alert.urgency === 'warning' ? 'bg-amber-200 text-amber-700' : 'bg-blue-100 text-blue-700'
+                                    alert.urgency === 'warning' ? 'bg-amber-200 text-amber-700' : 'bg-blue-100 text-blue-700'
                                     }`}>
                                     <AlertTriangle className="w-5 h-5" />
                                 </div>
@@ -198,7 +160,7 @@ export default function NotificationList({ onCountChange }: { onCountChange?: (c
                                     </p>
                                 </div>
                                 <button
-                                    onClick={() => dismissAlert(alert.id)}
+                                    onClick={() => onDismiss(alert.id)}
                                     className="opacity-0 group-hover:opacity-100 absolute top-2 right-2 p-1.5 hover:bg-black/10 rounded-full transition-all"
                                 >
                                     <X className="w-4 h-4 text-slate-600" />

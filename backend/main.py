@@ -1,6 +1,6 @@
 import traceback
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -525,25 +525,37 @@ async def get_iot_logs(request: Request):
         
         # 2. Cek apakah logs kosong atau sudah "basi" (Sensor Offline > 1 menit)
         should_use_dummy = False
+        
         if not logs:
             should_use_dummy = True
         else:
-            # Cek selisih waktu log terakhir
-            last_log_time = datetime.fromisoformat(logs[0]['created_at'].replace('Z', '+00:00'))
-            # UTC now (Supabase is UTC)
-            now = datetime.now(datetime.timezone.utc)
-            diff = (now - last_log_time).total_seconds()
-            
-            if diff > 60: # Jika lebih dari 60 detik tidak ada data
-                should_use_dummy = True
+            try:
+                # Parsing tanggal yang aman untuk berbagai versi Python
+                last_log_str = logs[0]['created_at']
+                # Hapus Z jika ada replacement manual
+                if last_log_str.endswith('Z'):
+                    last_log_str = last_log_str.replace('Z', '+00:00')
                 
+                last_log_time = datetime.fromisoformat(last_log_str)
+                
+                # Check timezone awareness
+                if last_log_time.tzinfo is None:
+                    last_log_time = last_log_time.replace(tzinfo=timezone.utc)
+                
+                now = datetime.now(timezone.utc)
+                diff = (now - last_log_time).total_seconds()
+                
+                if diff > 60: 
+                    should_use_dummy = True
+            except Exception as e:
+                print(f"⚠️ Date warning: {e}")
+                should_use_dummy = True # Fallback if date parse fails
+
         # 3. Jika Sensor Mati/Offline, Generate Data Dummy "On-The-Fly"
         if should_use_dummy:
             import random
-            from datetime import timedelta
             
-            # Generate 1 data baru biar chart jalan terus
-            # Kita insert ke DB juga biar history nya nyambung seolah-olah sensor hidup
+            # Generate 1 data baru
             dummy_temp = round(random.uniform(20.0, 25.0), 1)
             dummy_hum = round(random.uniform(50.0, 70.0), 1)
             
@@ -553,15 +565,21 @@ async def get_iot_logs(request: Request):
                 "device_id": "SENSOR-SIMULATOR-AUTO"
             }
             # Insert ke DB
-            insert_res = supabase.table("storage_logs").insert(payload).execute()
-            
-            # Ambil lagi logs terbaru setelah insert
-            response = supabase.table("storage_logs").select("*").order("created_at", desc=True).limit(50).execute()
-            logs = response.data
-            
+            try:
+                supabase.table("storage_logs").insert(payload).execute()
+                # Ambil lagi logs terbaru
+                response = supabase.table("storage_logs").select("*").order("created_at", desc=True).limit(50).execute()
+                logs = response.data
+            except Exception as insert_err:
+                 print(f"❌ Failed to insert dummy: {insert_err}")
+                 # Jika gagal insert, return log kosong atau log lama (best effort)
+                 pass
+
         return {"logs": logs}
+        
     except Exception as e:
-        # Fallback extreme jika DB error
+        import traceback
+        traceback.print_exc()
         print(f"IoT Error: {e}")
         return {"logs": []}
 

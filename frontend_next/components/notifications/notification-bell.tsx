@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,11 +8,64 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import NotificationList from "./notification-list"
+import NotificationList, { ExpiryAlert, RescueMenu } from "./notification-list"
 
 export default function NotificationBell() {
-    const [count, setCount] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
+
+    // State lifted from NotificationList
+    const [alerts, setAlerts] = useState<ExpiryAlert[]>([])
+    const [rescueMenu, setRescueMenu] = useState<RescueMenu | null>(null)
+    const [loading, setLoading] = useState(true)
+
+    const fetchAlerts = async () => {
+        try {
+            const response = await fetch("/api/notifications/trigger", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            })
+            const data = await response.json()
+
+            if (data.expiring_items) {
+                const formattedAlerts = data.expiring_items.map((item: any, idx: number) => ({
+                    id: idx,
+                    item_name: item.item_name || item.name,
+                    days_left: item.expiry_days,
+                    quantity: item.quantity || item.qty,
+                    unit: item.unit,
+                    urgency: item.expiry_days <= 1 ? "critical" : item.expiry_days <= 3 ? "warning" : "info",
+                }))
+                setAlerts(formattedAlerts)
+            }
+
+            if (data.rescue_menu) {
+                setRescueMenu(data.rescue_menu)
+            }
+        } catch (error) {
+            console.error("Error fetching alerts:", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        // Fetch immediately on mount so badge shows up
+        fetchAlerts()
+
+        // Poll every 30s
+        const interval = setInterval(fetchAlerts, 30000)
+        return () => clearInterval(interval)
+    }, [])
+
+    const handleDismiss = (id: number) => {
+        setAlerts(prev => prev.filter(a => a.id !== id))
+    }
+
+    const handleMarkAllRead = () => {
+        setAlerts([])
+    }
+
+    const count = alerts.length
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -21,8 +74,8 @@ export default function NotificationBell() {
                     variant="outline"
                     size="lg"
                     className={`relative h-12 px-4 gap-2 border-2 transition-all duration-300 ${count > 0
-                            ? "border-red-500/50 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-500"
-                            : "border-border hover:bg-muted"
+                        ? "border-red-500/50 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-500"
+                        : "border-border hover:bg-muted"
                         }`}
                 >
                     <div className={`relative ${count > 0 ? "animate-[wiggle_1s_ease-in-out_infinite]" : ""}`}>
@@ -48,7 +101,13 @@ export default function NotificationBell() {
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0 shadow-2xl border-2 border-slate-200" align="end">
-                <NotificationList onCountChange={setCount} />
+                <NotificationList
+                    alerts={alerts}
+                    rescueMenu={rescueMenu}
+                    loading={loading}
+                    onDismiss={handleDismiss}
+                    onMarkAllRead={handleMarkAllRead}
+                />
             </PopoverContent>
         </Popover>
     )

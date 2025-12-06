@@ -35,15 +35,16 @@ export default function IoTMonitoring() {
         const data = await response.json()
         console.log("[v0] IoT logs:", data)
 
-        // Backend returns a list directly: [{...}, {...}]
-        if (Array.isArray(data)) {
-          const formattedLogs = data.map((log: any) => ({
+        // Fix: Backend returns { logs: [...] }, not just [...]
+        const logData = data.logs || data
+
+        if (Array.isArray(logData)) {
+          const formattedLogs = logData.map((log: any) => ({
             timestamp: new Date(log.created_at).toLocaleTimeString(),
             temperature: log.temperature,
             humidity: log.humidity,
           }))
-          // Reverse to show oldest to newest on chart if needed, or just slice
-          // Usually charts want left-to-right time, so if API returns desc, we might need to reverse
+          // Reverse to show oldest to newest on chart
           setLogs(formattedLogs.reverse().slice(-20))
         }
       } catch (error) {

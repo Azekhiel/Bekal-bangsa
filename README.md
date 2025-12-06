@@ -44,7 +44,7 @@ The platform focuses on solving three core issues that threaten the stability an
     - Outcome: Reduces administrative burden and provides instant expert guidance.
 
 - **Smart Dashboard & IoT Storage:** 
-    - Function: Displays supplies from vendors and monitors physical storage conditions (Temperature/Humidity) in real-time using ESP32 sensors.
+    - Function: Displays supplies with freshness and expiry date prediction and monitors physical storage conditions (Temperature/Humidity) in real-time using IoT sensors.
     - Outcome: Ensures optimal storage conditions and simplifies procurement planning.
 
 - **AI Menu Recommendation:** 
