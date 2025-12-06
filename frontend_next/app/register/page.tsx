@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Leaf, Loader2 } from "lucide-react"
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
+import Image from "next/image" // <<-- added import
 
 // --- KOMPONEN FORM REGISTER ---
 function RegisterForm() {
@@ -108,8 +109,15 @@ function RegisterForm() {
       <Card className="w-full max-w-lg shadow-xl border-emerald-100 bg-white">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-2">
-            <div className="bg-emerald-100 p-3 rounded-full">
-              <Leaf className="w-8 h-8 text-emerald-600" />
+            {/* --- LOGO: ganti Leaf dengan Image --- */}
+            <div className="rounded-full bg-white p-[1.5px] shadow-[0_0_12px_rgba(255,255,255,0.9)]">
+              <Image
+                src="/bekal_bangsa.png"
+                alt="Logo"
+                width={200}
+                height={200}
+                className="object-contain"
+              />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-emerald-900">
