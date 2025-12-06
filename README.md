@@ -249,11 +249,14 @@ Bekal-bangsa/
 ### 🛒 For UMKM (Vendors)
 -   **[✅ Functional] AI Inventory Scan:** Upload a photo, AI detects items, quantity, and freshness.
 -   **[✅ Functional] GPS Location:** Auto-detects (simulated) or manual input of vendor location.
+-   **[✅ Functional] Satellite Map:** View SPPG locations on an interactive map (Leaflet) with satellite imagery.
 -   **[✅ Functional] Search Nearest SPPG:** Finds the closest Kitchen Hub based on GPS distance.
 -   **[✅ Functional] Incoming Orders:** View and manage orders from the government (SPPG).
+-   **[✅ Functional] Transaction History:** Dedicated page to track and manage order status (Pending, Confirmed, Completed).
 
 ### 👨‍🍳 For SPPG (Kitchen Admin)
 -   **[✅ Functional] Smart Dashboard:** View available supplies from all vendors.
+-   **[✅ Functional] Satellite Map:** View Supplier locations on an interactive map to plan logistics.
 -   **[✅ Functional] AI Menu Recommendation:** Generates recipes based on expiring ingredients.
 -   **[✅ Functional] Kitchen Production:**
     -   One-click "Cook" button.
@@ -262,7 +265,11 @@ Bekal-bangsa/
     -   **AI Safety Check:** Estimates shelf-life.
 -   **[✅ Functional] IoT Monitoring:** Real-time chart of storage temperature/humidity.
 -   **[✅ Functional] Scan Food (QC):** Visual analysis of cooked meals for safety and nutrition verification.
--   **[✅ Functional] Expiry Alerts:** WhatsApp-style notifications for expiring batches.
+-   **[✅ Functional] Notification System:**
+    -   **Popover UI:** Centralized notification center with "wiggle" animation.
+    -   **Rescue Menu:** Auto-suggested recipes for expiring items pinned at the top.
+    -   **Expiry Alerts:** High-contrast warnings for critical stock.
+-   **[✅ Functional] Transaction History:** Dedicated page to view past orders to UMKM.
 
 ---
 

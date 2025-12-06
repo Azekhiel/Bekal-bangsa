@@ -2,6 +2,7 @@
 
 import { LogOut, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import NotificationBell from "@/components/notifications/notification-bell"
 
 interface VendorNavbarProps {
   vendorName: string
@@ -23,6 +24,7 @@ export default function VendorNavbar({ vendorName, onLogout, onMenuToggle }: Ven
         </div>
 
         <div className="flex items-center gap-4">
+          <NotificationBell />
           <div className="text-right hidden sm:block">
             <p className="font-semibold text-foreground">{vendorName}</p>
             <p className="text-xs text-muted-foreground">UMKM Vendor</p>

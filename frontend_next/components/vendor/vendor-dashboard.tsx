@@ -10,6 +10,7 @@ import InventoryList from "@/components/common/inventory-list"
 import InventoryUpload from "./inventory-upload"
 import OrderList from "./order-list"
 import SppgSearch from "./sppg-search"
+import VendorOrderHistory from "./vendor-order-history"
 
 interface VendorDashboardProps {
   onLogout: () => void
@@ -19,7 +20,7 @@ export default function VendorDashboard({ onLogout }: VendorDashboardProps) {
   const [activeTab, setActiveTab] = useState<"dashboard" | "upload" | "orders" | "sppg" | "history" | "settings">("dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [analytics, setAnalytics] = useState<any>(null)
-  
+
   // State untuk menyimpan data user yang sedang login
   const [user, setUser] = useState<any>(null)
 
@@ -43,7 +44,7 @@ export default function VendorDashboard({ onLogout }: VendorDashboardProps) {
         if (token) headers["Authorization"] = `Bearer ${token}`
 
         const response = await fetch("/api/analytics/vendor", { headers })
-        
+
         if (response.ok) {
           const data = await response.json()
           setAnalytics(data)
@@ -54,7 +55,7 @@ export default function VendorDashboard({ onLogout }: VendorDashboardProps) {
         console.error("Error fetching vendor analytics:", error)
       }
     }
-    
+
     fetchAnalytics()
   }, [])
 
@@ -68,11 +69,7 @@ export default function VendorDashboard({ onLogout }: VendorDashboardProps) {
       case "sppg":
         return <SppgSearch />
       case "history":
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-muted-foreground">
-            <p>Fitur riwayat transaksi akan segera tersedia.</p>
-          </div>
-        )
+        return <VendorOrderHistory />
       case "settings":
         return (
           <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-muted-foreground">
@@ -85,13 +82,13 @@ export default function VendorDashboard({ onLogout }: VendorDashboardProps) {
           <div className="space-y-6 animate-in fade-in duration-500">
             {/* Widget Status Koneksi & Lokasi */}
             <ConnectionStatus location={user?.address || "Lokasi Belum Diatur"} />
-            
+
             {/* Statistik Ringkas */}
             <InventoryHealth data={analytics?.inventory_health} />
-            
+
             {/* Grafik Analisis */}
             <QuickInsights data={analytics} />
-            
+
             {/* Tabel Inventaris (List Produk) */}
             <InventoryList role="vendor" />
           </div>
@@ -100,28 +97,27 @@ export default function VendorDashboard({ onLogout }: VendorDashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* NAVBAR: Kirim nama user asli ke komponen navbar */}
-      <VendorNavbar 
-        vendorName={user?.full_name || "Mitra Vendor"} 
-        onLogout={onLogout} 
-        onMenuToggle={setSidebarOpen} 
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <VendorSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab as any}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex">
-        {/* SIDEBAR: Menu navigasi kiri */}
-        <VendorSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab as any}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Navbar */}
+        <VendorNavbar
+          vendorName={user?.full_name || "Mitra Vendor"}
+          onLogout={onLogout}
+          onMenuToggle={setSidebarOpen}
         />
 
-        {/* MAIN CONTENT: Area isi utama */}
-        <main className="flex-1 bg-gray-50/50 min-h-[calc(100vh-64px)]">
-          <div className="w-full px-4 sm:px-6 py-8">
-            {renderContent()}
-          </div>
+        {/* Main Content */}
+        <main className="flex-1 bg-stone-50 min-h-[calc(100vh-64px)]">
+          <div className="w-full px-6 py-8">{renderContent()}</div>
         </main>
       </div>
     </div>

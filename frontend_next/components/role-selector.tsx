@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ShoppingCart, UtensilsCrossed, Leaf } from "lucide-react"
+import { ShoppingCart, UtensilsCrossed, Leaf, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function RoleSelector() {
@@ -15,106 +15,125 @@ export default function RoleSelector() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-emerald-600 to-primary p-4">
-      <div className="w-full max-w-6xl space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900 via-emerald-950 to-black p-4 relative overflow-hidden">
+      {/* Abstract Background Shapes */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/20 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[100px] animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="w-full max-w-6xl space-y-12 relative z-10">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Leaf className="w-8 h-8 text-white" />
-            <h1 className="text-5xl md:text-6xl font-bold text-white">Bekal Bangsa</h1>
-            <Leaf className="w-8 h-8 text-white" />
+        <div className="text-center space-y-4 animate-in fade-in slide-in-from-top-8 duration-700">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl">
+              <Leaf className="w-8 h-8 text-emerald-400" />
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-white to-emerald-200 tracking-tight drop-shadow-sm">
+              Bekal Bangsa
+            </h1>
           </div>
-          <p className="text-xl md:text-2xl text-emerald-50 font-medium">Dari Lahan Lokal, Jadi Bekal Masa Depan</p>
-          <p className="text-emerald-100 text-sm md:text-base">Platform Cerdas untuk Ekosistem Pangan Lokal</p>
+          <div className="space-y-2">
+            <p className="text-xl md:text-2xl text-emerald-100/90 font-light tracking-wide">
+              Dari Lahan Lokal, Jadi <span className="font-semibold text-white">Bekal Masa Depan</span>
+            </p>
+            <p className="text-emerald-400/80 text-sm md:text-base font-mono uppercase tracking-widest">
+              Platform Ekosistem Pangan Terintegrasi
+            </p>
+          </div>
         </div>
 
         {/* Role Selection Cards */}
-        <div className="grid md:grid-cols-2 gap-8 md:gap-6">
-          
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 px-4">
+
           {/* Vendor Card */}
-          <Card
-            className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer group overflow-hidden relative"
+          <div
+            className="group relative animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150"
             onClick={() => handleSelectRole("vendor")}
           >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-amber-400"></div>
-            <CardHeader className="text-center pb-4">
-              <div className="flex justify-center mb-6">
-                <div className="bg-gradient-to-br from-secondary/20 to-amber-100 p-6 rounded-2xl group-hover:scale-110 transition-transform">
-                  <ShoppingCart className="w-16 h-16 text-secondary" />
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-500"></div>
+            <Card className="relative h-full bg-black/40 backdrop-blur-xl border-white/10 hover:border-amber-500/50 transition-all duration-500 cursor-pointer overflow-hidden rounded-3xl">
+              <CardHeader className="text-center pb-8 pt-10 relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <ShoppingCart className="w-32 h-32 text-amber-500" />
                 </div>
-              </div>
-              <CardTitle className="text-3xl text-foreground">UMKM Vendor</CardTitle>
-              <CardDescription className="text-base mt-2">Jual & Donasikan Persediaan Makanan</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
-                <li className="flex gap-3 items-start">
-                  <span className="text-secondary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Ambil foto dengan AI atau upload file</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="text-secondary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Deteksi lokasi otomatis dengan GPS</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="text-secondary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Cari SPPG terdekat berdasarkan jarak</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="text-secondary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Pantau status pesanan real-time</span>
-                </li>
-              </ul>
-              <Button className="w-full bg-secondary hover:bg-secondary/90 text-white font-semibold py-6 text-base rounded-lg">
-                Masuk Sebagai Vendor
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="flex justify-center mb-6">
+                  <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/10 p-6 rounded-2xl border border-amber-500/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-[0_0_30px_-5px_rgba(245,158,11,0.3)]">
+                    <ShoppingCart className="w-12 h-12 text-amber-400" />
+                  </div>
+                </div>
+                <CardTitle className="text-3xl text-white font-bold tracking-tight">UMKM Vendor</CardTitle>
+                <CardDescription className="text-amber-200/80 text-lg mt-2 font-medium">Jual & Donasikan Stok Pangan</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8 pb-10">
+                <ul className="space-y-4 px-4">
+                  {[
+                    "Scan foto bahan dengan AI",
+                    "Deteksi lokasi GPS otomatis",
+                    "Cari Kitchen Hub terdekat",
+                    "Pantau pesanan real-time"
+                  ].map((item, i) => (
+                    <li key={i} className="flex gap-3 items-center text-emerald-50/80 group/item">
+                      <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30 group-hover/item:bg-amber-500 group-hover/item:text-black transition-colors">
+                        <span className="text-xs font-bold">✓</span>
+                      </div>
+                      <span className="text-sm font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold py-7 text-lg rounded-xl shadow-lg shadow-orange-900/20 group-hover:shadow-orange-500/40 transition-all duration-300">
+                  Masuk Sebagai Vendor <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Kitchen Card */}
-          <Card
-            className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer group overflow-hidden relative"
+          <div
+            className="group relative animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300"
             onClick={() => handleSelectRole("kitchen")}
           >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-emerald-400"></div>
-            <CardHeader className="text-center pb-4">
-              <div className="flex justify-center mb-6">
-                <div className="bg-gradient-to-br from-primary/20 to-emerald-100 p-6 rounded-2xl group-hover:scale-110 transition-transform">
-                  <UtensilsCrossed className="w-16 h-16 text-primary" />
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-500"></div>
+            <Card className="relative h-full bg-black/40 backdrop-blur-xl border-white/10 hover:border-emerald-500/50 transition-all duration-500 cursor-pointer overflow-hidden rounded-3xl">
+              <CardHeader className="text-center pb-8 pt-10 relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <UtensilsCrossed className="w-32 h-32 text-emerald-500" />
                 </div>
-              </div>
-              <CardTitle className="text-3xl text-foreground">Kitchen Admin</CardTitle>
-              <CardDescription className="text-base mt-2">Kelola Persediaan & Produksi Makanan</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
-                <li className="flex gap-3 items-start">
-                  <span className="text-primary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Dashboard persediaan dari semua vendor</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="text-primary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Rekomendasi menu berbasis AI</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="text-primary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Pantau produksi dengan nutrisi otomatis</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="text-primary font-bold text-lg mt-0.5">✓</span>
-                  <span className="text-sm text-foreground/80">Monitor IoT suhu & kelembaban real-time</span>
-                </li>
-              </ul>
-              <Button className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-6 text-base rounded-lg">
-                Masuk Sebagai Kitchen Admin
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="flex justify-center mb-6">
+                  <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/10 p-6 rounded-2xl border border-emerald-500/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)]">
+                    <UtensilsCrossed className="w-12 h-12 text-emerald-400" />
+                  </div>
+                </div>
+                <CardTitle className="text-3xl text-white font-bold tracking-tight">Kitchen Admin</CardTitle>
+                <CardDescription className="text-emerald-200/80 text-lg mt-2 font-medium">Kelola Produksi & Distribusi</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8 pb-10">
+                <ul className="space-y-4 px-4">
+                  {[
+                    "Dashboard stok terpusat",
+                    "Rekomendasi menu AI",
+                    "Kalkulasi nutrisi otomatis",
+                    "Monitoring IoT Smart Storage"
+                  ].map((item, i) => (
+                    <li key={i} className="flex gap-3 items-center text-emerald-50/80 group/item">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 group-hover/item:bg-emerald-500 group-hover/item:text-black transition-colors">
+                        <span className="text-xs font-bold">✓</span>
+                      </div>
+                      <span className="text-sm font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-7 text-lg rounded-xl shadow-lg shadow-emerald-900/20 group-hover:shadow-emerald-500/40 transition-all duration-300">
+                  Masuk Sebagai Admin <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Footer Info */}
-        <div className="text-center text-emerald-50 text-sm">
-          <p>Platform untuk Program Makan Bergizi Gratis yang lebih baik</p>
+        <div className="text-center text-emerald-500/40 text-sm animate-in fade-in duration-1000 delay-500">
+          <p>© 2025 Bekal Bangsa. Hackathon Project.</p>
         </div>
       </div>
     </div>

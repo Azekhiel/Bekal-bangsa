@@ -33,14 +33,31 @@ export default function InventoryList({ role }: InventoryListProps) {
     useEffect(() => {
         const fetchInventory = async () => {
             try {
-                // In a real app, we might filter by owner_id for vendor
-                // For now, we fetch all supplies
-                const response = await fetch("/api/supplies")
+                let url = "/api/supplies"
+                const headers: Record<string, string> = {}
+
+                if (role === "vendor") {
+                    url = "/api/supplies/vendor"
+                    const token = localStorage.getItem("token")
+                    if (token) {
+                        headers["Authorization"] = `Bearer ${token}`
+                    }
+                }
+
+                const response = await fetch(url, { headers })
                 const data = await response.json()
 
+                // Handle response format difference
+                // /api/supplies returns array directly
+                // /api/supplies/vendor returns { supplies: [...] }
+                let itemsData = []
                 if (Array.isArray(data)) {
-                    setItems(data)
+                    itemsData = data
+                } else if (data.supplies && Array.isArray(data.supplies)) {
+                    itemsData = data.supplies
                 }
+
+                setItems(itemsData)
             } catch (error) {
                 console.error("Error fetching inventory:", error)
             } finally {
@@ -49,7 +66,7 @@ export default function InventoryList({ role }: InventoryListProps) {
         }
 
         fetchInventory()
-    }, [])
+    }, [role])
 
     const getStatusColor = (days: number) => {
         if (days <= 2) return "destructive"

@@ -15,6 +15,13 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import dynamic from "next/dynamic"
+
+// Dynamically import map to avoid SSR issues
+const SatelliteMap = dynamic(() => import("@/components/common/satellite-map"), {
+    ssr: false,
+    loading: () => <div className="h-[350px] w-full bg-muted animate-pulse rounded-lg" />
+})
 
 interface SupplyItem {
     id: number
@@ -30,6 +37,8 @@ interface SupplyItem {
     distance_km?: number // Backend field
     owner_name: string
     location: string
+    location_lat?: number
+    location_long?: number
 }
 
 export default function SupplierSearchOrder() {
@@ -164,6 +173,27 @@ export default function SupplierSearchOrder() {
                         <CardTitle>Hasil Pencarian ({searchResults.length})</CardTitle>
                     </CardHeader>
                     <CardContent>
+                        {/* Satellite Map Integration */}
+                        <div className="rounded-lg overflow-hidden border border-border mb-6">
+                            <SatelliteMap
+                                center={
+                                    searchResults[0].location_lat && searchResults[0].location_long
+                                        ? [searchResults[0].location_lat, searchResults[0].location_long]
+                                        : [-6.175392, 106.827153] // Default Monas
+                                }
+                                markers={searchResults.map(item => ({
+                                    id: item.id,
+                                    lat: item.location_lat || -6.175392, // Fallback if missing
+                                    long: item.location_long || 106.827153,
+                                    title: item.item_name || item.name,
+                                    description: `Stok: ${item.quantity || item.qty} ${item.unit} • ${item.owner_name}`,
+                                    distance_km: item.distance_km ?? item.distance,
+                                    type: "target"
+                                }))}
+                                height="350px"
+                            />
+                        </div>
+
                         <div className="space-y-3">
                             {searchResults.map((item) => (
                                 <div key={item.id} className="border border-border rounded-lg p-4 hover:bg-muted transition-colors">

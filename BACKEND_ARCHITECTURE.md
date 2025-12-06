@@ -38,6 +38,7 @@ backend/
     ├── kitchen.py          # 👨‍🍳 Cooking: Menu recs, nutrition calc, stock deduction.
     ├── logistics.py        # 🚚 Maps: Haversine distance, finding suppliers.
     ├── inventory.py        # 📦 Stock: Expiry checks, WhatsApp notifications.
+    ├── orders.py           # 🛒 Orders: Manage incoming/outgoing orders.
     └── storage.py          # ☁️ Files: Upload logic to Supabase Storage.
 ```
 
@@ -59,6 +60,7 @@ This file should **ONLY** contain:
     2.  Asking AI for nutrition facts.
     3.  Logging the production to `meal_productions` table.
 *   **`logistics.py`**: Contains the `haversine_distance` math function. It sorts suppliers by distance from the user.
+*   **`orders.py`**: Handles order lifecycle (Create -> Pending -> Confirmed -> Completed). Manages status updates and history retrieval.
 
 ### C. `models.py` (The Contract)
 Defines what data we expect from the Frontend.
@@ -204,6 +206,26 @@ Here is exactly what every function does, so you know what you're calling.
     2.  **For Vendor:** Generates a "Warning" message (Sell now!).
     3.  **For Kitchen:** Calls `generate_menu_recommendation` to create a "Rescue Recipe" message.
 *   **Output:** List of simulated WhatsApp notification payloads.
+
+### 🛒 `services/orders.py`
+
+#### `create_order(buyer_id, supply_id, qty)`
+*   **Goal:** Kitchen places an order to a Vendor.
+*   **Input:** Who is buying, what item, how much.
+*   **Logic:** Inserts record into `orders` table with status `pending`.
+*   **Output:** Created order object.
+
+#### `get_orders(role, user_id)`
+*   **Goal:** Fetch history.
+*   **Input:** Role ('vendor' or 'kitchen') and User ID.
+*   **Logic:** Queries `orders` table filtering by `seller_id` (for Vendor) or `buyer_id` (for Kitchen).
+*   **Output:** List of orders sorted by date.
+
+#### `update_order_status(order_id, status)`
+*   **Goal:** Change state (Accept/Reject/Complete).
+*   **Input:** Order ID and new status string.
+*   **Logic:** Updates the `status` field in DB.
+*   **Output:** Success message.
 
 ### ☁️ `services/storage.py`
 

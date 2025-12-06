@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Navigation, Search } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import dynamic from "next/dynamic"
+
+// Dynamically import map to avoid SSR issues
+const SatelliteMap = dynamic(() => import("@/components/common/satellite-map"), {
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-lg" />
+})
 
 interface SppgLocation {
     id: number
@@ -77,6 +84,22 @@ export default function SppgSearch() {
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${long}`, "_blank")
     }
 
+    // Prepare markers for the map
+    const mapMarkers = results.map(sppg => ({
+        id: sppg.id,
+        lat: sppg.lat,
+        long: sppg.long,
+        title: sppg.name,
+        description: sppg.address,
+        distance_km: sppg.distance_km,
+        type: "target" as const
+    }))
+
+    // Add user location if available (simulated or real)
+    // For now we use the first result's logic or a default if results exist
+    // Ideally we'd store the user's lat/long from the search
+    // But since we don't persist it in state here, we can infer or just show targets
+
     return (
         <Card className="w-full">
             <CardHeader>
@@ -111,7 +134,18 @@ export default function SppgSearch() {
                 )}
 
                 {results.length > 0 && (
-                    <div className="space-y-3 mt-4">
+                    <div className="space-y-4 mt-4">
+                        {/* Satellite Map Integration */}
+                        <div className="rounded-lg overflow-hidden border border-border">
+                            {/* Dynamic Import to avoid SSR issues with Leaflet if needed, 
+                                 but our component handles it with useEffect check */}
+                            <SatelliteMap
+                                center={[results[0].lat, results[0].long]}
+                                markers={mapMarkers}
+                                height="300px"
+                            />
+                        </div>
+
                         <h3 className="text-sm font-medium text-muted-foreground">Hasil Pencarian:</h3>
                         {results.map((sppg) => (
                             <div key={sppg.id} className="border border-border rounded-lg p-4 hover:bg-muted transition-colors">

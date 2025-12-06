@@ -68,6 +68,7 @@ frontend_next/
 │   │   ├── supplier-search-order.tsx       # Search & order supplies
 │   │   ├── cooking-production.tsx          # Production tracking
 │   │   ├── iot-monitoring.tsx             # Sensor dashboard
+│   │   ├── kitchen-order-history.tsx      # Transaction history
 │   │   └── kitchen-sidebar.tsx            # Navigation sidebar
 │   │
 │   ├── vendor/                  # UMKM Vendor components
@@ -78,11 +79,17 @@ frontend_next/
 │   │   ├── sppg-search.tsx               # Find nearest SPPG
 │   │   ├── order-list.tsx                # Incoming orders
 │   │   ├── quick-insights.tsx            # Analytics charts
+│   │   ├── vendor-order-history.tsx      # Transaction history
 │   │   └── vendor-sidebar.tsx            # Navigation sidebar
 │   │
 │   ├── shared/                  # Reusable utilities
 │   │   ├── error-boundary.tsx   # Error handling wrapper
-│   │   └── loading-spinner.tsx  # Loading state
+│   │   ├── loading-spinner.tsx  # Loading state
+│   │   └── satellite-map.tsx    # Leaflet Map Component
+│   │
+│   ├── notifications/           # Notification System
+│   │   ├── notification-bell.tsx # Bell trigger & Popover
+│   │   └── notification-list.tsx # Alert list & Rescue Menu
 │   │
 │   ├── ui/                      # shadcn/ui components (73 files)
 │   │   ├── button.tsx           # Button variants
@@ -167,6 +174,9 @@ kitchen-dashboard.tsx (Container)
 | `supplier-search-order.tsx` | Search nearby supplies | `/api/suppliers/search` (Geospatial) |
 | `iot-monitoring.tsx` | Temperature/humidity charts | `/api/iot` (Real-time data) |
 | `cooking-production.tsx` | Production tracking | `/api/kitchen/cook` |
+| `kitchen-order-history.tsx` | Transaction History | `/api/orders/umkm` |
+| `satellite-map.tsx` | Supplier Logistics Map | Leaflet + Esri Tiles |
+| `notification-bell.tsx` | Centralized Alerts | `/api/notifications/trigger` |
 
 ### 🛒 UMKM Vendor
 
@@ -177,6 +187,8 @@ kitchen-dashboard.tsx (Container)
 | `order-list.tsx` | Incoming orders | `/api/orders` |
 | `inventory-health.tsx` | Stock status dashboard | `/api/analytics/vendor` |
 | `quick-insights.tsx` | Sales & expiry charts | Recharts visualization |
+| `vendor-order-history.tsx` | Transaction History | `/api/orders/umkm` |
+| `satellite-map.tsx` | SPPG Location Map | Leaflet + Esri Tiles |
 
 ---
 
