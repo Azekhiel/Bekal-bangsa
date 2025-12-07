@@ -83,9 +83,9 @@ export default function RoleSelector() {
               <CardContent className="space-y-8 pb-10">
                 <ul className="space-y-4 px-4">
                   {[
-                    "Scan foto bahan dengan AI",
+                    "Scan stok yang ingin dijual dengan AI",
                     "Deteksi lokasi GPS otomatis",
-                    "Cari Kitchen Hub terdekat",
+                    "Cari SPPG terdekat",
                     "Pantau pesanan real-time"
                   ].map((item, i) => (
                     <li key={i} className="flex gap-3 items-center text-emerald-50/80 group/item">
@@ -129,10 +129,11 @@ export default function RoleSelector() {
               <CardContent className="space-y-8 pb-10">
                 <ul className="space-y-4 px-4">
                   {[
-                    "Dashboard stok terpusat",
-                    "Rekomendasi menu AI",
-                    "Kalkulasi nutrisi otomatis",
-                    "Monitoring IoT Smart Storage"
+                    "Pantau kesegaran stok real-time",
+                    "Cari Supplier Terdekat",
+                    "Menu rekomendasi yang bergizi dari stok",
+                    "Quality Control dengan AI Computer Vision",
+                    "Smart Storage IoT untuk monitor suhu dan kelembaban penyimpanan"
                   ].map((item, i) => (
                     <li key={i} className="flex gap-3 items-center text-emerald-50/80 group/item">
                       <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 group-hover/item:bg-emerald-500 group-hover/item:text-black transition-colors">
