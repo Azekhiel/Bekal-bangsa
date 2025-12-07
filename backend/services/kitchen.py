@@ -157,20 +157,23 @@ def chat_with_chef(user_message: str, user_id: int):
         k_lat = kitchen_loc.get('latitude', -6.175392)
         k_long = kitchen_loc.get('longitude', 106.827153)
 
-        # --- LANGKAH 2: AMBIL 'MY STOCK' (APA YG KITA PUNYA) ---
-        # Asumsi: Barang milik kitchen adalah barang dari orders yang statusnya 'completed'
-        my_stock_res = supabase.table("orders")\
-            .select("qty_ordered, supplies(item_name, unit, quality_status)")\
-            .eq("buyer_id", user_id)\
-            .eq("status", "completed")\
+        # --- LANGKAH 2: AMBIL 'MY STOCK' (GLOBAL INVENTORY VIEW) ---
+        # Mengambil SEMUA stok di gudang (supplies table) - sama seperti dashboard overview
+        my_stock_res = supabase.table("supplies")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(50)\
             .execute()
         
         my_stock_list = []
         if my_stock_res.data:
-            for o in my_stock_res.data:
-                if o.get('supplies'):
-                    item = o['supplies']
-                    my_stock_list.append(f"- {item['item_name']}: {o['qty_ordered']} {item['unit']} (Kualitas: {item['quality_status']})")
+            for item in my_stock_res.data:
+                quality = item.get('quality_status', 'N/A')
+                freshness = item.get('freshness', quality)  # Fallback to quality_status
+                my_stock_list.append(
+                    f"- **{item['item_name']}**: {item['quantity']} {item['unit']} "
+                    f"(Kualitas: {freshness}, Supplier: {item['owner_name']})"
+                )
         
         my_stock_text = "\n".join(my_stock_list) if my_stock_list else "- Tidak ada stok (Gudang Kosong)"
 

@@ -239,8 +239,6 @@ async def get_incoming_orders(request: Request, current_user: dict = Depends(get
     if current_user["role"] != "vendor":
         raise HTTPException(status_code=403, detail="Akses ditolak")
 
-    print(f"🔍 Fetching orders for Seller ID: {current_user['user_id']}") # Debug Log di Terminal
-
     try:
         # STRATEGI 1: Cari berdasarkan seller_id (Langsung & Cepat)
         orders_query = supabase.table("orders")\
@@ -253,8 +251,6 @@ async def get_incoming_orders(request: Request, current_user: dict = Depends(get
 
         # STRATEGI 2: Fallback (Jika data lama belum punya seller_id)
         if not orders_data:
-            print("⚠️ No orders found by seller_id. Trying fallback via supply ownership...")
-            
             # A. Cari ID semua barang milik vendor ini
             my_supplies = supabase.table("supplies").select("id").eq("user_id", current_user["user_id"]).execute()
             my_supply_ids = [s['id'] for s in my_supplies.data]
@@ -268,7 +264,6 @@ async def get_incoming_orders(request: Request, current_user: dict = Depends(get
                     .execute()
                 orders_data = fallback_query.data
 
-        print(f"✅ Found {len(orders_data)} orders") # Debug Log
         return {"orders": orders_data}
 
     except Exception as e:

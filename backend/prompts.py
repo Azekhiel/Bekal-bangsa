@@ -79,8 +79,8 @@ def get_cooked_meal_analysis_prompt():
     
     PENTING: 
     - ANALISIS GAMBAR YANG DIBERIKAN, jangan asal copy contoh
-    - is_safe: true jika makanan AMAN, false jika ADA TANDA-TANDA PEMBUSUKAN
-    - spoilage_signs: isi dengan tanda pembusukan yang terlihat (jika ada), kosongkan [] jika aman
+    - is_safe: true jika makanan AMAN, false jika ADA TANDA-TANDA PEMBUSUKAN, MENTAH/TIDAK MATANG, ATAU TIDAK LAYAK KONSUMSI
+    - spoilage_signs: isi dengan tanda pembusukan atau tidak layak konsumsi  yang terlihat (jika ada), kosongkan [] jika aman
     - Nilai nutrition_estimate harus ANGKA saja (contoh: "650", bukan "650-750 kkal")
     - Gunakan key "fats" bukan "fat"
     - JANGAN tambahkan field seperti "fiber", "detail_analysis", dll
