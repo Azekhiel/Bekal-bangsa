@@ -33,7 +33,6 @@ export default function IoTMonitoring() {
       try {
         const response = await fetch("/api/iot/logs")
         const data = await response.json()
-        console.log("[v0] IoT logs:", data)
 
         // Fix: Backend returns { logs: [...] }, not just [...]
         const logData = data.logs || data

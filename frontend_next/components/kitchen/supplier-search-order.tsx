@@ -91,7 +91,6 @@ export default function SupplierSearchOrder() {
                 method: "GET",
             })
             const data = await response.json()
-            console.log("[v0] Search results:", data)
             setSearchResults(data.data || [])
         } catch (error) {
             console.error("Error searching suppliers:", error)

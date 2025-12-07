@@ -24,66 +24,100 @@ export default function VendorSidebar({ activeTab, onTabChange, isOpen, onClose 
   return (
     <>
       {/* Mobile Overlay */}
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Sidebar */}
+      {/* Sidebar - SPPG Style (Full Match) */}
       <aside
-        className={`fixed left-0 top-16 w-64 h-[calc(100vh-64px)] bg-white border-r border-gray-100 shadow-sm overflow-y-auto transition-transform lg:translate-x-0 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-slate-900 to-slate-950 border-r border-white/10 z-[60] transition-transform duration-300 lg:translate-x-0 cursor-default shadow-2xl ${isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
-        {/* HEADER SIDEBAR: LOGO ONLY (CENTERED) */}
-        <div className="relative h-16 flex items-center justify-center border-b border-gray-100">
-          
-          {/* Logo Image Container */}
-          <div className="relative w-32 h-32">
-             <Image 
-               src="/bekal_bangsa.png" 
-               alt="Bekal Bangsa" 
-               fill
-               className="object-contain"
-               sizes="(max-width: 768px) 100vw, 128px"
-               priority
-             />
+        <div className="flex flex-col h-full">
+
+          {/* HEADER - Strict Match with Kitchen Sidebar Dimensions */}
+          <div className="p-6 border-b border-white/10 bg-white/5 relative">
+            <div className="flex items-center gap-3">
+
+              {/* LOGO - 64px - Matches Kitchen Exact */}
+              <div className="w-[64px] h-[64px] rounded-full bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+                <Image
+                  src="/bekal_bangsa.png"
+                  alt="Bekal Bangsa"
+                  width={100}
+                  height={100}
+                  className="object-cover scale-110"
+                  priority
+                />
+              </div>
+
+              {/* TEXT - Compact & Tighter - Matches Kitchen Exact */}
+              <div className="flex-1 -ml-1">
+                <h2 className="text-lg font-bold text-white tracking-tight leading-none">Bekal Bangsa</h2>
+                <p className="text-[10px] text-amber-400 font-bold tracking-wider uppercase mt-1">
+                  UMKM Vendor Portal
+                </p>
+              </div>
+
+            </div>
+
+            {/* Close Button for Mobile */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="lg:hidden absolute right-2 top-2 text-gray-400 hover:text-white hover:bg-white/10"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </div>
 
-          {/* Tombol Close Mobile (Absolute Position agar Logo tetap Center) */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onClose} 
-            className="lg:hidden absolute right-2 text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+          {/* Navigasi Menu */}
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto w-full">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Menu Utama</div>
 
-        {/* Navigasi Menu */}
-        <nav className="p-3 space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = activeTab === item.id
-            return (
-              <Button
-                key={item.id}
-                onClick={() => {
-                  onTabChange(item.id)
-                  onClose()
-                }}
-                variant="ghost"
-                className={`w-full justify-start gap-3 px-3 py-2.5 relative transition-all duration-200 ${isActive
-                    ? "bg-emerald-50 text-emerald-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-              >
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-emerald-600 rounded-r-full" />
-                )}
-                <Icon className={`w-5 h-5 ${isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-600"}`} />
-                <span className="text-sm">{item.label}</span>
-              </Button>
-            )
-          })}
-        </nav>
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              return (
+                <Button
+                  key={item.id}
+                  onClick={() => {
+                    onTabChange(item.id)
+                    onClose()
+                  }}
+                  variant="ghost"
+                  className={`w-full justify-start gap-3 text-sm font-medium transition-all duration-300 relative overflow-hidden group ${isActive
+                      ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-[0_0_20px_-5px_rgba(245,158,11,0.5)] border border-amber-500/50"
+                      : "bg-transparent text-slate-400 hover:text-white hover:bg-white/5"
+                    }`}
+                >
+                  <Icon
+                    className={`w-5 h-5 transition-colors ${isActive
+                        ? "text-white"
+                        : "text-slate-500 group-hover:text-amber-400"
+                      }`}
+                  />
+                  {item.label}
+                  {isActive && (
+                    <div className="absolute right-0 top-0 h-full w-1 bg-amber-400 shadow-[0_0_10px_#fbbf24]" />
+                  )}
+                </Button>
+              )
+            })}
+          </nav>
+
+          {/* Footer Branding */}
+          <div className="p-4 border-t border-white/10 bg-black/20">
+            <div className="text-center">
+              <p className="text-xs font-medium text-amber-500/80">© 2025 Bekal Bangsa</p>
+            </div>
+          </div>
+
+        </div>
       </aside>
 
       {/* Desktop sidebar placeholder */}

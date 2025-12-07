@@ -46,11 +46,11 @@ export default function RoleSelector() {
 
           <div className="space-y-2">
             <p className="text-xl md:text-2xl text-emerald-100 font-light tracking-wide">
-              Dari Lahan Lokal, Jadi <span className="font-semibold text-white">Bekal Masa Depan</span>
+              Dari UMKM, untuk <span className="font-semibold text-white">Bekal Nasional</span>
             </p>
 
-            <p className="text-emerald-300/80 text-sm md:text-base font-mono uppercase tracking-widest">
-              Platform Ekosistem Pangan Terintegrasi
+            <p className="text-white/90 text-sm md:text-base font-mono uppercase tracking-widest">
+              Platform AI Inklusif untuk Menjamin Keamanan Pangan & Pemberdayaan UMKM dalam Program Makan Bergizi Gratis
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function RoleSelector() {
                   </div>
                 </div>
 
-                <CardTitle className="text-3xl text-white font-bold tracking-tight">UMKM Vendor</CardTitle>
+                <CardTitle className="text-3xl text-white font-bold tracking-tight">Vendor UMKM</CardTitle>
                 <CardDescription className="text-amber-200/80 text-lg mt-2 font-medium">
                   Jual & Donasikan Stok Pangan
                 </CardDescription>
@@ -120,7 +120,7 @@ export default function RoleSelector() {
                   </div>
                 </div>
 
-                <CardTitle className="text-3xl text-white font-bold tracking-tight">Kitchen Admin</CardTitle>
+                <CardTitle className="text-3xl text-white font-bold tracking-tight">Admin Dapur SPPG</CardTitle>
                 <CardDescription className="text-emerald-200/80 text-lg mt-2 font-medium">
                   Kelola Produksi & Distribusi
                 </CardDescription>
@@ -153,7 +153,7 @@ export default function RoleSelector() {
 
         {/* Footer */}
         <div className="text-center text-emerald-300/40 text-sm animate-in fade-in duration-1000 delay-500">
-          <p>© 2025 Bekal Bangsa. Hackathon Project.</p>
+          <p>© 2025 Bekal Bangsa.</p>
         </div>
       </div>
     </div>

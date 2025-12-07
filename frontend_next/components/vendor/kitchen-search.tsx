@@ -77,7 +77,6 @@ export default function KitchenSearch() {
         method: "GET",
       })
       const data = await response.json()
-      console.log("[v0] SPPG Search results:", data)
       setSearchResults(data.data || [])
     } catch (error) {
       console.error("Error searching SPPG:", error)

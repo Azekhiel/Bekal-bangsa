@@ -16,8 +16,8 @@ interface Order {
   created_at: string
   // Data dari join
   supplies?: {
-      item_name: string
-      unit: string
+    item_name: string
+    unit: string
   }
 }
 
@@ -34,18 +34,17 @@ export default function OrderList() {
       // 2. KIRIM HEADER AUTH
       const response = await fetch("/api/orders/umkm", {
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         }
       })
-      
+
       const data = await response.json()
-      console.log("[Vendor] Orders:", data)
-      
+
       if (data.orders && Array.isArray(data.orders)) {
-          setOrders(data.orders)
+        setOrders(data.orders)
       } else {
-          setOrders([])
+        setOrders([])
       }
     } catch (error) {
       console.error("Error fetching orders:", error)
@@ -63,15 +62,15 @@ export default function OrderList() {
       const token = localStorage.getItem("token")
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
-        headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` // Jangan lupa token disini juga
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // Jangan lupa token disini juga
         },
         body: JSON.stringify({ status: newStatus }),
       })
-      
+
       if (response.ok) {
-          fetchOrders()
+        fetchOrders()
       }
     } catch (error) {
       console.error("Error updating order:", error)
@@ -80,10 +79,10 @@ export default function OrderList() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-        case "pending": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200"
-        case "confirmed": return "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200"
-        case "completed": return "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
-        default: return ""
+      case "pending": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200"
+      case "confirmed": return "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200"
+      case "completed": return "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+      default: return ""
     }
   }
 
@@ -119,41 +118,41 @@ export default function OrderList() {
                       <div className="flex items-center gap-2 mb-2">
                         {order.status === "confirmed" ? <CheckCircle className="w-5 h-5 text-green-500" /> : <Clock className="w-5 h-5 text-yellow-500" />}
                         <p className="font-semibold text-foreground text-lg">
-                            {order.supplies?.item_name || "Item"}
+                          {order.supplies?.item_name || "Item"}
                         </p>
                       </div>
                       <p className="text-sm text-muted-foreground">Pembeli: <span className="font-medium text-black">{order.buyer_name}</span></p>
                       <p className="text-sm text-muted-foreground">Jumlah: <span className="font-medium text-black">{order.qty_ordered} {order.supplies?.unit}</span></p>
                     </div>
-                    
+
                     <Badge variant="outline" className={getStatusBadgeVariant(order.status)}>
-                      {order.status === "pending" ? "Perlu Konfirmasi" : 
-                       order.status === "confirmed" ? "Siap Kirim" : "Selesai"}
+                      {order.status === "pending" ? "Perlu Konfirmasi" :
+                        order.status === "confirmed" ? "Siap Kirim" : "Selesai"}
                     </Badge>
                   </div>
 
                   {order.status === "pending" && (
                     <div className="flex gap-2 justify-end pt-2 border-t">
-                        <Button
+                      <Button
                         size="sm"
                         onClick={() => handleUpdateStatus(order.id, "confirmed")}
                         className="bg-emerald-600 text-white hover:bg-emerald-700"
-                        >
+                      >
                         <CheckCircle className="w-4 h-4 mr-2" />
                         Terima Pesanan
-                        </Button>
+                      </Button>
                     </div>
                   )}
-                  
+
                   {order.status === "confirmed" && (
                     <div className="flex gap-2 justify-end pt-2 border-t">
-                        <Button
+                      <Button
                         size="sm"
                         onClick={() => handleUpdateStatus(order.id, "completed")}
                         className="bg-blue-600 text-white hover:bg-blue-700"
-                        >
+                      >
                         Tandai Terkirim
-                        </Button>
+                      </Button>
                     </div>
                   )}
                 </div>

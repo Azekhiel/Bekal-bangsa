@@ -80,7 +80,6 @@ export default function CookingProduction() {
         }),
       })
       const data = await response.json()
-      console.log("Cook response:", data)
 
       // Refresh history to show new meal
       fetchHistory()

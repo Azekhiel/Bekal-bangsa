@@ -67,7 +67,6 @@ export default function MenuRecommendation() {
         body: JSON.stringify({ ingredients }),
       })
       const data = await response.json()
-      console.log("API Response:", data)
 
       if (data.error) {
         alert(`Gagal mendapatkan rekomendasi: ${data.error}`)

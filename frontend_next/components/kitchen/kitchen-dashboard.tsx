@@ -32,14 +32,14 @@ export default function KitchenDashboard({ onLogout }: KitchenDashboardProps) {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 tracking-tight">
                 {activeTab === "dashboard" && "Dashboard Overview"}
-                {activeTab === "chat" && <KitchenChatbot />}
+                {activeTab === "chat" && "AI Chef Assistant"}
                 {activeTab === "search" && "Cari Supplier & Bahan"}
                 {activeTab === "cook" && "Dapur & Produksi"}
                 {activeTab === "iot" && "Smart Storage Monitoring"}
                 {activeTab === "qc" && "Quality Control"}
                 {activeTab === "history" && "Riwayat Transaksi"}
               </h1>
-              <p className="text-sm text-slate-500 mt-1 font-medium">Selamat Datang, Kitchen Admin</p>
+              <p className="text-sm text-slate-500 mt-1 font-medium">Selamat Datang, Admin SPPG</p>
             </div>
             <div className="flex items-center gap-4">
               <NotificationBell />
@@ -47,8 +47,9 @@ export default function KitchenDashboard({ onLogout }: KitchenDashboardProps) {
           </div>
         </header>
 
-        <div className="px-6 py-8">
+        <div className="px-6 py-8 h-[calc(100vh-80px)]">
           {activeTab === "dashboard" && <KitchenDashboardOverview />}
+          {activeTab === "chat" && <KitchenChatbot />}
           {activeTab === "search" && <SupplierSearchOrder />}
           {activeTab === "cook" && <CookingProduction />}
           {activeTab === "iot" && <IoTMonitoring />}

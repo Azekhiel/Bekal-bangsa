@@ -18,9 +18,6 @@ export default function VendorNavbar({ vendorName, onLogout, onMenuToggle }: Ven
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => onMenuToggle(true)}>
             <Menu className="w-5 h-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-emerald-800">Bekal Bangsa</h1>
-          </div>
         </div>
 
         <div className="flex items-center gap-4">

@@ -45,7 +45,6 @@ export default function ExpiryAlerts() {
           headers: { "Content-Type": "application/json" },
         })
         const data = await response.json()
-        console.log("[v0] Alerts Data:", data)
 
         if (data.expiring_items) {
           const formattedAlerts = data.expiring_items.map((item: any, idx: number) => ({
