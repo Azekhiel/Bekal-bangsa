@@ -3,8 +3,8 @@
 #include "DHT.h"
 
 // ================= COFIGURATION =================
-const char* WIFI_SSID = "WifiKM2";
-const char* WIFI_PASSWORD = "Kamar2911";
+const char* WIFI_SSID = "your-wifi-ssid";
+const char* WIFI_PASSWORD = "your-wifi-password";
 
 // IMPORTANT: Added '/api/iot/log' to the confirmed endpoint
 const char* API_URL = "https://bekal-bangsa-al8lc.ondigitalocean.app/api/iot/log"; 

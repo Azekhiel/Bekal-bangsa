@@ -1,6 +1,8 @@
 ## Bekal Bangsa ##
 
-*Latest Update: December 2, 2025*
+**🌐 [Visit Application](https://bekal-bangsa.vercel.app)** 
+
+*Latest Update: December 7, 2025*
 
 ## 1. Project Context & Objectives
 
@@ -88,10 +90,10 @@ The platform focuses on solving three core issues that threaten the stability an
 
 ### 🚀 Quick Start
 
-#### Option A: Access Live Demo (DigitalOcean)
-**🌐 [Visit Application](https://bekal-bangsa-xyz.ondigitalocean.app)** (Example URL)
--   **Backend:** Deployed on DigitalOcean App Platform.
--   **Frontend:** Deployed on Vercel/DigitalOcean.
+#### Option A: Access Live Demo 
+**🌐 [Visit Application](https://bekal-bangsa.vercel.app)** 
+-   **Backend:** Deployed on DigitalOcean
+-   **Frontend:** Deployed on Vercel
 -   **IoT:** Connected to ESP32 physical sensors.
 
 #### Option B: Run Locally
@@ -102,43 +104,17 @@ git clone <repository_url>
 cd Bekal-bangsa
 ```
 
-#### 2. Configure Environment Variables
-Create a `.env` file in the `backend/` folder:
-```ini
-SUPABASE_URL="your_supabase_url"
-SUPABASE_KEY="your_supabase_anon_key"
-KOLOSAL_API_KEY="your_kolosal_api_key"
-KOLOSAL_BASE_URL="https://api.kolosal.com/v1"
-```
-
-#### 3. Run the Backend (FastAPI)
-```bash
-cd backend
-
-# Create Virtual Environment (first time only)
-python -m venv venv
-
-# Activate Virtual Environment
-# Windows:
-venv\Scripts\activate
-# Mac/Linux:
-source venv/bin/activate
-
-# Install Dependencies
-pip install -r requirements.txt
-
-# Run Server
-uvicorn main:app --reload
-# ✅ Backend running at http://127.0.0.1:8000
-```
-
-#### 4. Run the Frontend (Next.js) - **RECOMMENDED**
-Open a **new terminal**:
+#### 2. Run the Frontend (Next.js)
+Open a terminal:
 ```bash
 cd frontend_next
 
-# Install Dependencies (first time only)
+# Install Dependencies
 npm install
+
+# Setup Environment
+# Create .env.local and add:
+# NEXT_PUBLIC_API_BASE=https://bekal-bangsa-al8lc.ondigitalocean.app/api
 
 # Run Development Server
 npm run dev
@@ -147,32 +123,41 @@ npm run dev
 
 **Access the app:** Open your browser to `http://localhost:3000`
 
-#### 5. Run IoT Simulator (Optional)
-If you don't have the ESP32 hardware, run the simulator:
+#### 3. (Optional) Run Backend Locally
+*Only required if you want to modify backend logic.*
+
+1.  **Configure Vars:** Create `.env` in `backend/` with Supabase & Kolosal keys.
+2.  **Run Server:**
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+uvicorn main:app --reload
+# ✅ Backend running at http://127.0.0.1:8000
+```
+
+#### 4. Setup IoT Sensors 
+
+**Option A: Use Real ESP32 Device**
+1.  Navigate to the `scripts/` folder.
+2.  Open `ESP32_Sensor.ino` in Arduino IDE.
+3.  Connect your ESP32 with a DHT11/DHT22 (Temperature and Humidity) sensor.
+4.  Update the `WIFI_SSID` and `WIFI_PASSWORD` in the code.
+5.  Upload the code to your ESP32. It will automatically start sending temperature/humidity data.
+
+**Option B: Use Simulator (No Hardware)**
+*Note: The system automatically falls back to simulated data if no sensor is active. You generally DO NOT need to run anything manually.*
+
+However, if you want to manually force specific data, you can run the simulator script (requires local backend or updated URL):
 ```bash
 cd backend
 python iot_simulator.py
-# Simulates temperature/humidity data every 10 seconds
+# 🚀 Simulates temperature/humidity data every 5 seconds
 ```
 
 ---
 
-###📦 Alternative: Streamlit Frontend (Legacy)
-
-> **Note:** Streamlit version is deprecated. Use Next.js for latest features and better UX.
-
-#### Prerequisites
-```bash
-cd Bekal-bangsa
-# Activate venv (see step 3 above)
-pip install -r frontend_streamlit/requirements.txt
-```
-
-#### Run Streamlit
-```bash
-streamlit run frontend_streamlit/Home.py
-# App running at http://localhost:8501
-```
 ### 📱 Access on Mobile
 
 ### 1. Ensure Same WiFi Network
@@ -181,21 +166,77 @@ Make sure your Laptop (running the server) and your Phone are connected to the *
 ### 2. Check Laptop IP Address
 1.  Open Terminal (Command Prompt / PowerShell) on your Laptop.
 2.  Type command: `ipconfig` (Windows) or `ifconfig` (Mac/Linux).
-3.  Find the **IPv4 Address**. Example: `192.168.1.5` or `192.168.100.12`.
+3.  Find the **IPv4 Address**. E
 
 ### 3. Open in Phone Browser
 1.  Open Chrome / Safari on your Phone.
 2.  Type the following address in the address bar:
     *   **Frontend:** `http://<YOUR_LAPTOP_IP>:3000`
-        *   Example: `http://192.168.1.5:3000`
     *   **Backend API:** `http://<YOUR_LAPTOP_IP>:8000/docs`
 
 > **Note:** If it doesn't work, try temporarily disabling the Firewall on your Laptop.
 
+---
+
+## 3. Features & Usage Guide
+
+**Getting Started:**
+1.  Open the application landing page.
+2.  Choose your role: **UMKM Vendor** (Seller) or **Kitchen Admin** (Buyer).
+3.  Login using your credentials or use the provided **Demo Accounts** for quick access.
 
 ---
 
-## 3. Folder Structure & File Responsibilities
+### 🏪 A. UMKM Portal (Vegetable/Food Vendor)
+Designed for market vendors to digitize stock and connect with government kitchens.
+
+#### 1. Dashboard & Smart Alerts
+-   **Stock Health:** Monitor Fresh vs. Expiring items at a glance.
+-   **Proactive Notifications:** Receive **WhatsApp-style alerts** when ingredients are nearing expiry, allowing you to sell them quickly before they spoil.
+![Screenshot Vendor Dashboard](https://placehold.co/600x400/png?text=Screenshot+Vendor+Dashboard)
+
+#### 2. Smart Stock Upload
+-   **AI Recognition:** Take a photo of your current existing stocks; AI automatically detects **Item Type**, **Quantity**, **Expiry Date**, and **Freshness Level**.
+-   **Manual Control:** You can manually edit the AI's detected values to ensure 100% accuracy before saving to the Digital Catalog.
+![Screenshot AI Stock Upload](https://placehold.co/600x400/png?text=Screenshot+AI+Stock+Upload)
+
+#### 3. Logistics & Order Management
+-   **Find Nearest Kitchen:** Use GPS-based search to locate the closest SPPG Kitchen Hub to supply your ingredients.
+-   **Incoming Orders:** Receive and accept purchase orders from SPPG directly in the app.
+![Screenshot Incoming Orders](https://placehold.co/600x400/png?text=Screenshot+Incoming+Orders)
+
+---
+
+### 👨‍🍳 B. SPPG Admin Portal (Kitchen Hub)
+Central command for managing MBG food supply chain, production, and safety.
+
+#### 1. Command Center & Rescue Menu
+-   **Global Stock View:** Monitor current available ingredients.
+-   **Rescue Recommendations:** The system identifies near-expiry stock and automatically generates a **"Rescue Menu"** recommendation to utilize those specific ingredients, preventing food waste.
+![Screenshot Kitchen Dashboard](https://placehold.co/600x400/png?text=Screenshot+Kitchen+Dashboard)
+
+#### 2. Ingredient Sourcing (Geospatial)
+-   **Smart Search:** Search nearest UMKM Vendors that sold the ingredient you need, sorted by distance and freshness.
+![Screenshot Map Search](https://placehold.co/600x400/png?text=Screenshot+Map+And+Search)
+
+#### 3. AI Chef Assistant Chatbot
+-   **Interactive Assistant:** Chat with "AI Chef Assistant" to plan menus, check inventory, or get recipe ideas based on your current stock.
+![Screenshot AI Chatbot](https://placehold.co/600x400/png?text=Screenshot+Kitchen+Chatbot)
+
+#### 4. Quality Control (Computer Vision)
+-   **Safety Scan:** Before serving, cooked meals are scanned using **Computer Vision**.
+-   **Analysis:** The AI analyzes visual cues to estimate **Nutrition Content** (Calories/Protein) and verifies **Food Safety** status.
+![Screenshot Food QC](https://placehold.co/600x400/png?text=Screenshot+Food+QC)
+
+#### 5. Production & Smart Storage (IoT)
+-   **Smart Execution:** One-click cooking that **auto-deducts inventory**, provides **Nutrition Estimates**, sets an **Expiry Timer**, and offers **Storage Tips**.
+-   **Real-time IoT:** Monitors storage temperature/humidity using **Real ESP32 Sensors**.
+-   *Note: If sensors are offline, the system falls back to simulated data for demonstration.*
+![Screenshot Cooking - IoT](https://placehold.co/600x400/png?text=Screenshot+IoT+Cooking)
+
+---
+
+## 4. Folder Structure & File Responsibilities
 
 ```text
 Bekal-bangsa/
@@ -256,7 +297,7 @@ Bekal-bangsa/
 
 ---
 
-## 4. Implemented Features (Status Check)
+## 5. Implemented Features (Status Check)
 
 ### 🛒 For UMKM (Vendors)
 -   **[✅ Functional] AI Inventory Scan:** Upload a photo, AI detects items, quantity, and freshness.
@@ -287,7 +328,7 @@ Bekal-bangsa/
 
 ---
 
-## 5. Documentation
+## 6. Documentation
 
 For in-depth technical guides:
 - **Backend:** See [`BACKEND_ARCHITECTURE.md`](./BACKEND_ARCHITECTURE.md)
@@ -295,7 +336,7 @@ For in-depth technical guides:
 
 ---
 
-## 6. AI Logic Explanation
+## 7. AI Logic Explanation
 
 This function is the "Brain" of the intake process. It uses a **Single-Shot Prompting** strategy with Claude 4.5 Sonnet to perform three tasks simultaneously:
 
