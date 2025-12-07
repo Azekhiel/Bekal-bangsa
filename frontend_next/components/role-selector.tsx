@@ -76,7 +76,7 @@ export default function RoleSelector() {
 
                 <CardTitle className="text-3xl text-white font-bold tracking-tight">Vendor UMKM</CardTitle>
                 <CardDescription className="text-amber-200/80 text-lg mt-2 font-medium">
-                  Jual & Donasikan Stok Pangan
+                  Jual Stok Pangan
                 </CardDescription>
               </CardHeader>
 
