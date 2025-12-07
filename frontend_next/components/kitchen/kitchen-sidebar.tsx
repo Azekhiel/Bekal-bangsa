@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Search, ChefHat, Thermometer, Camera, LogOut, Menu, X, MessageSquare, Leaf, ShoppingBag } from "lucide-react"
+import { LayoutDashboard, Search, ChefHat, Thermometer, Camera, LogOut, Menu, X, MessageSquare, ShoppingBag } from "lucide-react"
+import Image from "next/image" // <--- Import Image
 
 interface KitchenSidebarProps {
   activeTab: string
@@ -15,7 +16,7 @@ export default function KitchenSidebar({ activeTab, onTabChange, onLogout }: Kit
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "chat", label: "AI Chef Assistant", icon: MessageSquare }, // <-- Tambah ini
+    { id: "chat", label: "AI Chef Assistant", icon: MessageSquare }, 
     { id: "search", label: "Cari Supplier", icon: Search },
     { id: "cook", label: "Dapur & Produksi", icon: ChefHat },
     { id: "iot", label: "Smart Storage", icon: Thermometer },
@@ -40,19 +41,32 @@ export default function KitchenSidebar({ activeTab, onTabChange, onLogout }: Kit
         className={`fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-900 to-slate-950 text-white border-r border-white/10 z-30 transition-transform duration-300 lg:translate-x-0 shadow-2xl ${open ? "translate-x-0" : "-translate-x-full"
           }`}
       >
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
-          <div className="p-6 border-b border-white/10 bg-white/5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
-                <Leaf className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Bekal Bangsa</h2>
-                <p className="text-[10px] text-emerald-400 font-medium tracking-wider uppercase">SPPG Control Center</p>
-              </div>
-            </div>
-          </div>
+<div className="flex flex-col h-full">
+  {/* Sidebar Header */}
+  <div className="p-6 border-b border-white/10 bg-white/5">
+    <div className="flex items-center gap-2">
+
+      {/* LOGO */}
+      <div className="w-[64px] h-[64px] rounded-full bg-white flex items-center justify-center overflow-hidden">
+  <Image
+    src="/bekal_bangsa.png"
+    alt="Logo"
+    width={100}
+    height={100}
+    className="object-cover"
+  />
+</div>
+
+      {/* TEXT */}
+      <div className="-ml-[2px]"> {/* sedikit tarik ke kiri biar makin rapet */}
+        <h2 className="text-lg font-bold text-white tracking-tight">Bekal Bangsa</h2>
+        <p className="text-[10px] text-emerald-400 font-medium tracking-wider uppercase">
+          SPPG Control Center
+        </p>
+      </div>
+
+    </div>
+  </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
